@@ -58,12 +58,12 @@ export default function OverviewPage() {
           {isMobile ? "" : "Add folder"}
         </Button>
         <Button className={isMobile ? "" : "w-48"} size="lg" onClick={onCreate}>
-          <NotepadText className={isMobile ? "" : "mr-2"} />
-          {isMobile ? "" : "Add document"}
-        </Button>
-        <Button className={isMobile ? "" : "w-48"} size="lg" onClick={onCreate}>
           <FileUp className={isMobile ? "" : "mr-2"} />
           {isMobile ? "" : "Upload file"}
+        </Button>
+        <Button className={isMobile ? "" : "w-48"} size="lg" onClick={onCreate}>
+          <NotepadText className={isMobile ? "" : "mr-2"} />
+          {isMobile ? "" : "Add document"}
         </Button>
       </div>
     </div>
