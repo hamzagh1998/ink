@@ -4,9 +4,9 @@ import { v } from "convex/values";
 export default defineSchema({
   profiles: defineTable({
     userId: v.string(),
+    name: v.string(),
     firstName: v.string(),
     lastName: v.string(),
-    fullName: v.string(),
     email: v.string(),
     userType: v.string(),
     plan: v.string(),
@@ -16,6 +16,8 @@ export default defineSchema({
 
   workspaces: defineTable({
     name: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
     userId: v.string(),
     description: v.optional(v.string()),
     children: v.optional(
@@ -29,6 +31,7 @@ export default defineSchema({
   folders: defineTable({
     title: v.string(),
     userId: v.string(),
+    description: v.optional(v.string()),
     isArchived: v.boolean(),
     parentFolder: v.optional(v.id("folders")),
     itemType: v.string(),

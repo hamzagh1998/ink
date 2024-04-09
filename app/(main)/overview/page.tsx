@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FileUp, FolderPlus, NotepadText } from "lucide-react";
@@ -10,6 +11,7 @@ import { api } from "@/convex/_generated/api";
 
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { FolderDialog } from "./_components/folder-dialog";
 
 export default function OverviewPage() {
   const { user } = useUser();
@@ -18,19 +20,22 @@ export default function OverviewPage() {
 
   const isMobile = useMediaQuery("(max-width: 768px)");
 
-  const create = useMutation(api.documents.create);
+  const createDocument = useMutation(api.documents.createDocument);
 
-  const onCreate = () => {
-    const promise = create({ title: "Untitled" }).then((documentId) =>
+  const [showFolderModal, setShowFolderModal] = useState(false);
+
+  const onCreate = async () => {
+    const promise = createDocument({ title: "Untitled" }).then((documentId) =>
       router.push(`/documents/${documentId}`)
     );
 
     toast.promise(promise, {
-      loading: "Creating a new note...",
-      success: "New note created!",
-      error: "Failed to create a new note.",
+      loading: "Creating a new document...",
+      success: "New document created!",
+      error: "Failed to create a new document.",
     });
   };
+
   return (
     <div className="h-full flex flex-col items-center justify-center space-y-4">
       <div className="flex items-center justify-center">
@@ -53,7 +58,11 @@ export default function OverviewPage() {
         Welcome to {user?.firstName}&apos;s Ink
       </h2>
       <div className="flex justify-center items-center flex-wrap gap-2">
-        <Button className={isMobile ? "" : "w-48"} size="lg" onClick={onCreate}>
+        <Button
+          className={isMobile ? "" : "w-48"}
+          size="lg"
+          onClick={() => setShowFolderModal(true)}
+        >
           <FolderPlus className={isMobile ? "" : "mr-2"} />
           {isMobile ? "" : "Add folder"}
         </Button>
@@ -61,11 +70,13 @@ export default function OverviewPage() {
           <FileUp className={isMobile ? "" : "mr-2"} />
           {isMobile ? "" : "Upload file"}
         </Button>
+
         <Button className={isMobile ? "" : "w-48"} size="lg" onClick={onCreate}>
           <NotepadText className={isMobile ? "" : "mr-2"} />
           {isMobile ? "" : "Add document"}
         </Button>
       </div>
+      <FolderDialog show={showFolderModal} setShow={setShowFolderModal} />
     </div>
   );
 }

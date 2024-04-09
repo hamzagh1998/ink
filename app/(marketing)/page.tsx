@@ -15,15 +15,18 @@ export default function MarketingPage() {
   const { isAuthenticated } = useConvexAuth();
 
   const checkOrCreateProfile = useMutation(api.profiles.checkOrCreateProfile);
+  const initUserWorkspace = useMutation(api.worspaces.initUserWorkspace);
 
-  const checkUserProfile = async () => {
+  //* if the user logged in for the 1st time we'll create new profile and workspace for him
+  const initUserProfile = async () => {
     await checkOrCreateProfile();
+    await initUserWorkspace({});
     router.push("/overview");
   };
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    checkUserProfile();
+    initUserProfile();
   }, [isAuthenticated]);
 
   return (

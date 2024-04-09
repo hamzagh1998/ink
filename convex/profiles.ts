@@ -67,8 +67,8 @@ export const checkOrCreateProfile = mutation({
 
     const profile = await ctx.db.insert("profiles", {
       userId: identity.subject,
-      fullName: identity.name!,
-      firstName: identity.name?.split(" ")[0]!,
+      name: identity.name!,
+      firstName: identity.givenName!,
       lastName: identity.familyName!,
       email: identity.email!,
       plan: "free",

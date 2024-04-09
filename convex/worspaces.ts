@@ -33,23 +33,19 @@ export const getWorkstaion = query({
 
     const userId = identity.subject;
 
-    const folders = await ctx.db
+    const workspace = await ctx.db
       .query("workspaces")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("usersIds"), [userId]))
       .order("desc")
       .collect();
 
-    return folders;
+    return workspace;
   },
 });
 
-export const createWorkspace = mutation({
-  args: {
-    isShared: v.optional(v.boolean()),
-    usersIds: v.optional(v.array(v.string())),
-  },
-  handler: async (ctx, args) => {
+export const initUserWorkspace = mutation({
+  handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
 
     if (!identity) {
@@ -58,11 +54,22 @@ export const createWorkspace = mutation({
 
     const userId = identity.subject;
 
+    const existingWorkspace = await ctx.db
+      .query("workspaces")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("userId"), userId))
+      .order("desc")
+      .first();
+
+    if (existingWorkspace) return existingWorkspace;
+
     const workspace = await ctx.db.insert("workspaces", {
-      name: identity.name!,
+      name: identity.givenName! + "'s workspace",
+      firstName: identity.givenName!,
+      lastName: identity.familyName!,
       userId,
-      isShared: args.isShared ? args.isShared : false,
-      usersIds: args.usersIds ? args.usersIds : [userId],
+      isShared: false,
+      usersIds: [],
       createdAt: new Date().toUTCString(),
     });
 
