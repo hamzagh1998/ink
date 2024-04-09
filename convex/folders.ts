@@ -23,29 +23,7 @@ async function checkAuthAndOwnership(
   return document;
 }
 
-export const getStandalones = query({
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
-    const userId = identity.subject;
-
-    const folders = await ctx.db
-      .query("folders")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .filter((q) => q.eq(q.field("isArchived"), false))
-      .filter((q) => q.eq(q.field("parentFolder"), undefined))
-      .order("desc")
-      .collect();
-
-    return folders;
-  },
-});
-
-export const create = mutation({
+export const createFolder = mutation({
   args: {
     title: v.string(),
     parentFolder: v.optional(v.id("folders")),
@@ -67,6 +45,7 @@ export const create = mutation({
       userId,
       isArchived: false,
       isPublished: false,
+      createdAt: new Date().toUTCString(),
     });
 
     return document;

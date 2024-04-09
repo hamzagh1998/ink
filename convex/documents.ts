@@ -66,7 +66,7 @@ export const archive = mutation({
   },
 });
 
-export const create = mutation({
+export const createDocument = mutation({
   args: {
     title: v.string(),
     parentFolder: v.optional(v.id("folders")),
@@ -88,6 +88,7 @@ export const create = mutation({
       userId,
       isArchived: false,
       isPublished: false,
+      createdAt: new Date().toUTCString(),
     });
 
     return document;
@@ -133,8 +134,15 @@ export const restore = mutation({
     };
 
     if (document.parentFolder) {
-      const parent = await ctx.db.get(document.parentFolder);
-      if (parent?.isArchived) {
+      const parent = await ctx.db
+        .query("folders")
+        .withIndex("by_user_parent", (q) =>
+          q.eq("userId", userId).eq("parentFolder", document.parentFolderId)
+        )
+        .order("desc")
+        .first();
+
+      if (parent && parent.isArchived) {
         options.parentFolder = undefined;
       }
     }

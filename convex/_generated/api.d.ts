@@ -17,6 +17,8 @@ import type {
 import type * as documents from "../documents.js";
 import type * as files from "../files.js";
 import type * as folders from "../folders.js";
+import type * as profiles from "../profiles.js";
+import type * as worspaces from "../worspaces.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -30,6 +32,8 @@ declare const fullApi: ApiFromModules<{
   documents: typeof documents;
   files: typeof files;
   folders: typeof folders;
+  profiles: typeof profiles;
+  worspaces: typeof worspaces;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

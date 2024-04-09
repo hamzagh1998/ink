@@ -10,6 +10,7 @@ import { UserItem } from "./user-item";
 import { SearchItem } from "./search";
 
 import { cn } from "@/lib/utils";
+import { Workspace } from "./workspace";
 
 export function Navigation() {
   const router = useRouter();
@@ -122,7 +123,9 @@ export function Navigation() {
         </div>
         <div>
           <UserItem />
-          <SearchItem icon={Search} onClick={search.onOpen} />
+          <Workspace>
+            <SearchItem icon={Search} onClick={search.onOpen} />
+          </Workspace>
         </div>
 
         <div

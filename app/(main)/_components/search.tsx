@@ -1,20 +1,12 @@
 import { LucideIcon } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-
 interface ItemProps {
-  active?: boolean;
   level?: number;
   onClick?: () => void;
   icon: LucideIcon;
 }
 
-export function SearchItem({
-  onClick,
-  level = 0,
-  active,
-  icon: Icon,
-}: ItemProps) {
+export function SearchItem({ onClick, level = 0, icon: Icon }: ItemProps) {
   return (
     <div
       onClick={onClick}
@@ -22,10 +14,7 @@ export function SearchItem({
       style={{
         paddingLeft: level ? `${level * 12 + 12}px` : "12px",
       }}
-      className={cn(
-        "group min-h-[27px] text-sm py-1 pr-3 my-4 w-full hover:bg-primary/5 flex items-center text-muted-foreground font-medium",
-        active && "bg-primary/5 text-primary"
-      )}
+      className="group min-h-[27px] text-sm py-1 pr-3 my-4 w-full hover:bg-primary/5 flex items-center text-muted-foreground font-medium"
     >
       <Icon className="shrink-0 h-[18px] w-[18px] mr-2 text-muted-foreground" />
       <span className="truncate">Search</span>

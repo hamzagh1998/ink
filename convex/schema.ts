@@ -2,6 +2,30 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+  profiles: defineTable({
+    userId: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
+    fullName: v.string(),
+    email: v.string(),
+    userType: v.string(),
+    plan: v.string(),
+    storageUsageInMb: v.number(),
+    createdAt: v.string(),
+  }).index("by_user", ["userId"]),
+
+  workspaces: defineTable({
+    name: v.string(),
+    userId: v.string(),
+    description: v.optional(v.string()),
+    children: v.optional(
+      v.array(v.object({ type: v.string(), id: v.string() }))
+    ),
+    isShared: v.boolean(),
+    usersIds: v.array(v.string()),
+    createdAt: v.string(),
+  }).index("by_user", ["userId"]),
+
   folders: defineTable({
     title: v.string(),
     userId: v.string(),
@@ -11,6 +35,7 @@ export default defineSchema({
     isPublished: v.boolean(),
     isPrivate: v.optional(v.boolean()),
     password: v.optional(v.string()),
+    createdAt: v.string(),
   })
     .index("by_user", ["userId"])
     .index("by_user_parent", ["userId", "parentFolder"]),
@@ -25,6 +50,7 @@ export default defineSchema({
     isPrivate: v.optional(v.boolean()),
     password: v.optional(v.string()),
     sizeInMb: v.number(),
+    createdAt: v.string(),
   })
     .index("by_user", ["userId"])
     .index("by_user_parent", ["userId", "parentFolder"]),
@@ -41,6 +67,8 @@ export default defineSchema({
     isPublished: v.boolean(),
     isPrivate: v.optional(v.boolean()),
     password: v.optional(v.string()),
+    createdAt: v.string(),
+    lastUpdate: v.optional(v.string()),
   })
     .index("by_user", ["userId"])
     .index("by_user_parent", ["userId", "parentFolder"]),
