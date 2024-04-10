@@ -6,19 +6,25 @@ import { ChevronsLeft, MenuIcon, Search } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useSearch } from "@/hooks/use-search";
 import { useSettings } from "@/hooks/use-settings";
-import { UserItem } from "./user-item";
-import { SearchItem } from "./search";
+import { useWorkspace } from "@/hooks/user-workspace";
 
-import { cn } from "@/lib/utils";
+import { SearchItem } from "./search";
+import { UserItem } from "./user-item";
 import { Workspace } from "./workspace";
 
+import { cn } from "@/lib/utils";
+import { Folder } from "./folder";
+
 export function Navigation() {
-  const router = useRouter();
-  const settings = useSettings();
-  const search = useSearch();
-  const params = useParams();
-  const pathname = usePathname();
   const isMobile = useMediaQuery("(max-width: 768px)");
+
+  const router = useRouter();
+
+  const settings = useSettings();
+  const params = useParams();
+  const search = useSearch();
+  const pathname = usePathname();
+  const { children } = useWorkspace();
 
   const isResizingRef = useRef(false);
   const sidebarRef = useRef<ElementRef<"aside">>(null);
@@ -119,12 +125,25 @@ export function Navigation() {
             isMobile && "opacity-100"
           )}
         >
-          <ChevronsLeft className="h-6 w-6" />
+          <ChevronsLeft className="h-6 w-6 hover:text-secondary-foreground" />
         </div>
         <div>
           <UserItem />
           <Workspace>
-            <SearchItem icon={Search} onClick={search.onOpen} />
+            <SearchItem level={1} icon={Search} onClick={search.onOpen} />
+            {children?.map((child) =>
+              child.type === "folder" ? (
+                <Folder
+                  level={1}
+                  key={child.id}
+                  id={child.id}
+                  title={child.title}
+                  icon={child.icon}
+                />
+              ) : (
+                <></>
+              )
+            )}
           </Workspace>
         </div>
 

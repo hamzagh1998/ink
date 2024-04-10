@@ -26,7 +26,12 @@ export default function MarketingPage() {
     await checkOrCreateProfile();
     const workspace = await initUserWorkspace({});
     if (workspace) {
-      setWorkspaceData(workspace._id, workspace.name, workspace.usersIds);
+      setWorkspaceData(
+        workspace._id,
+        workspace.name,
+        workspace.children,
+        workspace.usersIds
+      );
     }
     router.push("/overview");
   };
