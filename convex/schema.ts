@@ -42,6 +42,16 @@ export default defineSchema({
     isArchived: v.boolean(),
     parentFolder: v.optional(v.id("folders")),
     parentWorkSpace: v.optional(v.id("workspaces")),
+    children: v.optional(
+      v.array(
+        v.object({
+          id: v.string(),
+          type: v.string(),
+          title: v.string(),
+          icon: v.optional(v.string()),
+        })
+      )
+    ),
     icon: v.optional(v.string()),
     itemType: v.string(),
     isPublished: v.boolean(),

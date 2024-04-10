@@ -49,6 +49,7 @@ export const createFolder = mutation({
       isPrivate: args.isPrivate,
       password: args.password,
       icon: args.icon,
+      children: [],
       itemType: "folder",
       userId,
       isArchived: false,
