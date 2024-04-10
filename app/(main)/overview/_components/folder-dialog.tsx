@@ -3,6 +3,7 @@ import { IconPicker } from "@/components/icon-picker";
 import { Smile } from "lucide-react";
 import { useMutation } from "convex/react";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 
 import {
   Dialog,
@@ -100,10 +101,26 @@ export function FolderDialog({
         icon: formData.icon ? formData.icon : undefined,
         description: formData.description,
         isPrivate: formData.isPrivate,
-        password: formData.password,
+        password: bcrypt.hashSync(formData.password, 10),
         parentWorkSpace: id,
+        parentFolder: undefined,
       });
-      addChild({ workspaceId: id!, child: { id: folder._id, type: "folder" } });
+      addChild({
+        workspaceId: id!,
+        child: {
+          id: folder._id,
+          title: folder.title,
+          icon: folder.icon,
+          type: "folder",
+        },
+      });
+      setFormData({
+        title: "",
+        icon: null,
+        description: "",
+        isPrivate: false,
+        password: "",
+      });
       setShow(false);
     } catch (error) {
       if (error instanceof z.ZodError) {

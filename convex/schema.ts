@@ -21,7 +21,14 @@ export default defineSchema({
     userId: v.string(),
     description: v.optional(v.string()),
     children: v.optional(
-      v.array(v.object({ type: v.string(), id: v.string() }))
+      v.array(
+        v.object({
+          id: v.string(),
+          type: v.string(),
+          title: v.string(),
+          icon: v.optional(v.string()),
+        })
+      )
     ),
     isShared: v.boolean(),
     usersIds: v.array(v.string()),

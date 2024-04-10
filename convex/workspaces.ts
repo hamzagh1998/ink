@@ -72,6 +72,7 @@ export const initUserWorkspace = mutation({
       userId,
       isShared: false,
       usersIds: [],
+      children: [],
       createdAt: new Date().toUTCString(),
     });
 
@@ -82,7 +83,12 @@ export const initUserWorkspace = mutation({
 export const addChild = mutation({
   args: {
     workspaceId: v.id("workspaces"),
-    child: v.object({ id: v.string(), type: v.string() }),
+    child: v.object({
+      id: v.string(),
+      type: v.string(),
+      title: v.string(),
+      icon: v.optional(v.string()),
+    }),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
