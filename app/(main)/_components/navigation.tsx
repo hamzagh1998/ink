@@ -27,12 +27,12 @@ export function Navigation() {
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
 
   useEffect(() => {
-    if (isMobile) {
+    if (isMobile || search.isOpen) {
       collapse();
     } else {
       resetWidth();
     }
-  }, [isMobile]);
+  }, [isMobile, search]);
 
   useEffect(() => {
     if (isMobile) {

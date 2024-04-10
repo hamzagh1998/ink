@@ -10,23 +10,28 @@ async function checkAuthAndOwnership(
   userId: string,
   documentId: Id<"folders">
 ) {
-  const document = await ctx.db.get(documentId);
+  const folder = await ctx.db.get(documentId);
 
-  if (!document) {
+  if (!folder) {
     throw new Error("Not found");
   }
 
-  if (document.userId !== userId) {
+  if (folder.userId !== userId) {
     throw new Error("Unauthorized");
   }
 
-  return document;
+  return folder;
 }
 
 export const createFolder = mutation({
   args: {
     title: v.string(),
+    icon: v.optional(v.string()),
+    description: v.optional(v.string()),
+    isPrivate: v.optional(v.boolean()),
+    password: v.optional(v.string()),
     parentFolder: v.optional(v.id("folders")),
+    parentWorkSpace: v.optional(v.id("workspaces")),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -37,18 +42,20 @@ export const createFolder = mutation({
 
     const userId = identity.subject;
 
-    const document = await ctx.db.insert("folders", {
+    const folderId = await ctx.db.insert("folders", {
       title: args.title,
       parentFolder: args.parentFolder,
+      parentWorkSpace: args.parentWorkSpace,
+      isPrivate: args.isPrivate,
+      password: args.password,
       itemType: "folder",
-      isPrivate: false,
       userId,
       isArchived: false,
       isPublished: false,
       createdAt: new Date().toUTCString(),
     });
 
-    return document;
+    return await checkAuthAndOwnership(ctx, userId, folderId);
   },
 });
 
@@ -84,8 +91,8 @@ export const archive = mutation({
         )
         .collect();
 
-      for (const document of documents) {
-        await ctx.db.patch(document._id, {
+      for (const folder of documents) {
+        await ctx.db.patch(folder._id, {
           isArchived: true,
         });
       }

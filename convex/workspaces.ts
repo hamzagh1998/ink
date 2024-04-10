@@ -3,6 +3,7 @@ import { Context } from "vm";
 
 import { mutation, query } from "./_generated/server";
 import { Doc, Id } from "./_generated/dataModel";
+import { api } from "./_generated/api";
 
 // Common function to check authentication and ownership
 async function checkAuthAndOwnership(
@@ -10,21 +11,22 @@ async function checkAuthAndOwnership(
   userId: string,
   workspaceId: Id<"workspaces">
 ) {
-  const document = await ctx.db.get(workspaceId);
+  const workspace = await ctx.db.get(workspaceId);
 
-  if (!document) {
+  if (!workspace) {
     throw new Error("Not found");
   }
 
-  if (document.userId !== userId) {
+  if (workspace.userId !== userId) {
     throw new Error("Unauthorized");
   }
 
-  return document;
+  return workspace;
 }
 
-export const getWorkstaion = query({
-  handler: async (ctx) => {
+export const getWorkstaionById = query({
+  args: { workspaceId: v.string() },
+  handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
     if (!identity) {
@@ -36,7 +38,7 @@ export const getWorkstaion = query({
     const workspace = await ctx.db
       .query("workspaces")
       .withIndex("by_user", (q) => q.eq("userId", userId))
-      .filter((q) => q.eq(q.field("usersIds"), [userId]))
+      .filter((q) => q.eq(q.field("_id"), args.workspaceId))
       .order("desc")
       .collect();
 
@@ -63,7 +65,7 @@ export const initUserWorkspace = mutation({
 
     if (existingWorkspace) return existingWorkspace;
 
-    const workspace = await ctx.db.insert("workspaces", {
+    const workspaceId = await ctx.db.insert("workspaces", {
       name: identity.givenName! + "'s workspace",
       firstName: identity.givenName!,
       lastName: identity.familyName!,
@@ -73,6 +75,35 @@ export const initUserWorkspace = mutation({
       createdAt: new Date().toUTCString(),
     });
 
-    return workspace;
+    return checkAuthAndOwnership(ctx, userId, workspaceId);
+  },
+});
+
+export const addChild = mutation({
+  args: {
+    workspaceId: v.id("workspaces"),
+    child: v.object({ id: v.string(), type: v.string() }),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+
+    const workspace = await checkAuthAndOwnership(
+      ctx,
+      userId,
+      args.workspaceId
+    );
+
+    const updatedWorkspace = await ctx.db.patch(args.workspaceId, {
+      ...workspace,
+      children: [...workspace.children, args.child],
+    });
+
+    return updatedWorkspace;
   },
 });

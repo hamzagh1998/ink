@@ -9,18 +9,25 @@ import { Heading } from "./_components/heading";
 import { Heroes } from "./_components/heroes";
 import { Footer } from "./_components/footer";
 
+import { useWorkspace } from "@/hooks/user-workspace";
+
 export default function MarketingPage() {
   const router = useRouter();
 
   const { isAuthenticated } = useConvexAuth();
 
+  const { setWorkspaceData } = useWorkspace();
+
   const checkOrCreateProfile = useMutation(api.profiles.checkOrCreateProfile);
-  const initUserWorkspace = useMutation(api.worspaces.initUserWorkspace);
+  const initUserWorkspace = useMutation(api.workspaces.initUserWorkspace);
 
   //* if the user logged in for the 1st time we'll create new profile and workspace for him
   const initUserProfile = async () => {
     await checkOrCreateProfile();
-    await initUserWorkspace({});
+    const workspace = await initUserWorkspace({});
+    if (workspace) {
+      setWorkspaceData(workspace._id, workspace.name, workspace.usersIds);
+    }
     router.push("/overview");
   };
 
