@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { ConvexClientProvider } from "@/providers/convex-provider";
 
 import "./globals.css";
+import { BaseWrapper } from "@/components/base-wrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,7 +43,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+            <BaseWrapper>{children}</BaseWrapper>
           </ThemeProvider>
         </body>
       </html>

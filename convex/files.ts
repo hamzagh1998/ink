@@ -23,7 +23,7 @@ async function checkAuthAndOwnership(
   return document;
 }
 
-export const getStandalones = query({
+export const getFiles = query({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
 
@@ -33,15 +33,12 @@ export const getStandalones = query({
 
     const userId = identity.subject;
 
-    const folders = await ctx.db
+    const files = await ctx.db
       .query("files")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .filter((q) => q.eq(q.field("isArchived"), false))
-      .filter((q) => q.eq(q.field("parentFolder"), undefined))
-      .order("desc")
+      .withIndex("by_user_parent", (q) => q.eq("userId", userId))
       .collect();
 
-    return folders;
+    return files;
   },
 });
 

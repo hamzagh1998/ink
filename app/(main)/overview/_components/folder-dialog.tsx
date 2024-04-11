@@ -33,6 +33,8 @@ export function FolderDialog({
   const createFolder = useMutation(api.folders.createFolder);
   const addChild = useMutation(api.workspaces.addChild);
 
+  const { setWorkspaceData } = useWorkspace();
+
   const { id } = useWorkspace();
 
   const [validationErrors, setValidationErrors] = useState<
@@ -105,7 +107,7 @@ export function FolderDialog({
         parentWorkSpace: id,
         parentFolder: undefined,
       });
-      addChild({
+      const workspace = await addChild({
         workspaceId: id!,
         child: {
           id: folder._id,
@@ -114,6 +116,12 @@ export function FolderDialog({
           type: "folder",
         },
       });
+      setWorkspaceData(
+        workspace._id,
+        workspace.name,
+        workspace.children,
+        workspace.users
+      );
       setFormData({
         title: "",
         icon: null,
@@ -164,7 +172,7 @@ export function FolderDialog({
               </div>
               <div className="w-full">
                 <Label htmlFor="title" className="text-right">
-                  Title
+                  Title*
                 </Label>
                 <Input
                   type="text"
@@ -220,7 +228,7 @@ export function FolderDialog({
             {formData.isPrivate ? (
               <div className="my-4">
                 <Label htmlFor="password" className="text-right">
-                  Password
+                  Password*
                 </Label>
                 <Input
                   type="password"

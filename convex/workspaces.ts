@@ -80,6 +80,35 @@ export const initUserWorkspace = mutation({
   },
 });
 
+export const updateWorkspaceName = mutation({
+  args: {
+    workspaceId: v.id("workspaces"),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+
+    const workspace = await checkAuthAndOwnership(
+      ctx,
+      userId,
+      args.workspaceId
+    );
+
+    await ctx.db.patch(args.workspaceId, {
+      ...workspace,
+      name: args.name,
+    });
+
+    return await checkAuthAndOwnership(ctx, userId, args.workspaceId);
+  },
+});
+
 export const addChild = mutation({
   args: {
     workspaceId: v.id("workspaces"),
@@ -105,11 +134,11 @@ export const addChild = mutation({
       args.workspaceId
     );
 
-    const updatedWorkspace = await ctx.db.patch(args.workspaceId, {
+    await ctx.db.patch(args.workspaceId, {
       ...workspace,
       children: [...workspace.children, args.child],
     });
 
-    return updatedWorkspace;
+    return await checkAuthAndOwnership(ctx, userId, args.workspaceId);
   },
 });

@@ -23,6 +23,25 @@ async function checkAuthAndOwnership(
   return folder;
 }
 
+export const getFolders = query({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+
+    const folders = await ctx.db
+      .query("folders")
+      .withIndex("by_user_parent", (q) => q.eq("userId", userId))
+      .collect();
+
+    return folders;
+  },
+});
+
 export const createFolder = mutation({
   args: {
     title: v.string(),

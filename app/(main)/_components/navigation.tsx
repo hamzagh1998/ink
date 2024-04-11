@@ -1,7 +1,7 @@
 "use client";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
-import { ChevronsLeft, MenuIcon, Search } from "lucide-react";
+import { ChevronsLeft, Layers, MenuIcon, Search, Trash } from "lucide-react";
 
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useSearch } from "@/hooks/use-search";
@@ -14,6 +14,12 @@ import { Workspace } from "./workspace";
 
 import { cn } from "@/lib/utils";
 import { Folder } from "./folder";
+import { SkeletonLoader } from "@/components/skeleton-loader";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@radix-ui/react-popover";
 
 export function Navigation() {
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -131,18 +137,31 @@ export function Navigation() {
           <UserItem />
           <Workspace>
             <SearchItem level={1} icon={Search} onClick={search.onOpen} />
-            {children?.map((child) =>
-              child.type === "folder" ? (
-                <Folder
-                  level={1}
-                  key={child.id}
-                  id={child.id}
-                  title={child.title}
-                  icon={child.icon}
-                />
+            {children ? (
+              children.length ? (
+                children.map((child) =>
+                  child.type === "folder" ? (
+                    <Folder
+                      level={1}
+                      key={child.id}
+                      id={child.id}
+                      title={child.title}
+                      icon={child.icon}
+                    />
+                  ) : (
+                    <></>
+                  )
+                )
               ) : (
                 <></>
               )
+            ) : (
+              <>
+                <SkeletonLoader level={1} />
+                <SkeletonLoader level={1} />
+                <SkeletonLoader level={1} />
+                <SkeletonLoader level={1} />
+              </>
             )}
           </Workspace>
         </div>
