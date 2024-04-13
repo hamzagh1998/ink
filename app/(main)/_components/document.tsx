@@ -1,8 +1,12 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
 import { NotepadText, Trash2Icon } from "lucide-react";
+
+import { api } from "@/convex/_generated/api";
+import { useWorkspace } from "@/hooks/user-workspace";
 
 interface DocumentProps {
   id: Id<"documents">;
@@ -14,7 +18,26 @@ interface DocumentProps {
 export function Document({ level, id, title, icon }: DocumentProps) {
   const router = useRouter();
 
+  const initUserWorkspace = useMutation(api.workspaces.initUserWorkspace);
+  const deleteDocument = useMutation(api.documents.deleteDocument);
+
+  const { setWorkspaceData } = useWorkspace();
+
   const [isOpen, setIsOpen] = useState(false);
+
+  const updateWorkspace = async () => {
+    await deleteDocument({ id });
+    const workspace = await initUserWorkspace({});
+    if (workspace) {
+      setWorkspaceData(
+        workspace._id,
+        workspace.name,
+        workspace.children,
+        workspace.usersIds
+      );
+    }
+    router.push("/overview");
+  };
 
   return (
     <main>
@@ -35,7 +58,11 @@ export function Document({ level, id, title, icon }: DocumentProps) {
               {title}
             </p>
           </div>
-          <Trash2Icon className="hover:text-destructive" size={18} />
+          <Trash2Icon
+            onClick={updateWorkspace}
+            className="hover:text-destructive"
+            size={18}
+          />
         </div>
       </div>
     </main>

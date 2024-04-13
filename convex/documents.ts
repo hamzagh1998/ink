@@ -94,28 +94,7 @@ export const createDocument = mutation({
   },
 });
 
-export const getTrash = query({
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
-    const userId = identity.subject;
-
-    const documents = await ctx.db
-      .query("documents")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .filter((q) => q.eq(q.field("isArchived"), true))
-      .order("desc")
-      .collect();
-
-    return documents;
-  },
-});
-
-export const restore = mutation({
+export const deleteDocument = mutation({
   args: { id: v.id("documents") },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -126,48 +105,51 @@ export const restore = mutation({
 
     const userId = identity.subject;
 
-    const document = await checkAuthAndOwnership(ctx, userId, args.id);
+    const removeFromParent = async (
+      ctx: Context,
+      documentId: Id<"documents">,
+      parentId: Id<"workspaces" | "folders">,
+      type: "workspace" | "folder"
+    ) => {
+      if (type === "workspace") {
+        const workspace = await ctx.db
+          .query("workspaces")
+          .withIndex("by_user", (q: any) => q.eq("userId", userId))
+          .filter((q: any) => q.eq(q.field("_id"), parentId))
+          .first();
 
-    const options: Partial<Doc<"documents">> = {
-      isArchived: false,
+        await ctx.db.patch(workspace._id, {
+          ...workspace,
+          children: workspace.children.filter(
+            (child: { id: Id<"documents"> }) => child.id !== documentId
+          ),
+        });
+      } else if (type === "folder") {
+        const folder = await ctx.db
+          .query("folders")
+          .withIndex("by_user", (q: any) => q.eq("userId", userId))
+          .filter((q: any) => q.eq(q.field("_id"), parentId))
+          .first();
+
+        await ctx.db.patch(folder._id, {
+          ...folder,
+          children: folder.children.filter(
+            (child: { id: Id<"documents"> }) => child.id !== documentId
+          ),
+        });
+      }
     };
 
-    if (document.parentFolder) {
-      const parent = await ctx.db
-        .query("folders")
-        .withIndex("by_user_parent", (q) =>
-          q.eq("userId", userId).eq("parentFolder", document.parentFolderId)
-        )
-        .order("desc")
-        .first();
-
-      if (parent && parent.isArchived) {
-        options.parentFolder = undefined;
-      }
-    }
-
-    const updatedDocument = await ctx.db.patch(args.id, options);
-
-    return updatedDocument;
-  },
-});
-
-export const remove = mutation({
-  args: { id: v.id("documents") },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
-    const userId = identity.subject;
-
     const document = await checkAuthAndOwnership(ctx, userId, args.id);
 
-    await ctx.db.delete(args.id);
-
-    return document;
+    if (document) {
+      const type = document.parentFolder ? "folder" : "workspace";
+      const parent = document.parentFolder
+        ? document.parentFolder
+        : document.parentWorkSpace;
+      await removeFromParent(ctx, document._id, parent, type);
+      await ctx.db.delete(args.id);
+    }
   },
 });
 

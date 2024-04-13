@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { api } from "@/convex/_generated/api";
+import { useSearch } from "@/hooks/use-search";
 
 import { FolderDialog } from "./folder-dialog";
 
@@ -31,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { SkeletonLoader } from "@/components/skeleton-loader";
 import { Document } from "./document";
+import { useWorkspace } from "@/hooks/user-workspace";
 
 interface FolderProps {
   level: number;
@@ -45,8 +47,12 @@ export function Folder({ level, id, title, icon }: FolderProps) {
   const folderChildren = useQuery(api.folders.getFolderChildren, {
     folderId: id,
   });
+  const initUserWorkspace = useMutation(api.workspaces.initUserWorkspace);
   const createDocument = useMutation(api.documents.createDocument);
   const addFolderChild = useMutation(api.folders.addChild);
+  const deleteFolder = useMutation(api.folders.deleteFolder);
+
+  const { setWorkspaceData } = useWorkspace();
 
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -73,6 +79,20 @@ export function Folder({ level, id, title, icon }: FolderProps) {
       success: "New document created!",
       error: "Failed to create a new document.",
     });
+  };
+
+  const updateWorkspace = async () => {
+    await deleteFolder({ id });
+    const workspace = await initUserWorkspace({});
+    if (workspace) {
+      setWorkspaceData(
+        workspace._id,
+        workspace.name,
+        workspace.children,
+        workspace.usersIds
+      );
+    }
+    router.push("/overview");
   };
   return (
     <main>
@@ -133,7 +153,7 @@ export function Folder({ level, id, title, icon }: FolderProps) {
                 &ensp; Add Document
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={updateWorkspace}>
                 <Trash size={18} />
                 &ensp; Delete
               </DropdownMenuItem>
