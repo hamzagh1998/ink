@@ -3,7 +3,7 @@ import { Id } from "@/convex/_generated/dataModel";
 
 type Child = {
   id: string;
-  type: string;
+  type: "folder" | "file" | "document";
   title: string;
   icon?: string;
 };

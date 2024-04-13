@@ -12,7 +12,6 @@ import {
   Save,
   UserRound,
 } from "lucide-react";
-import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery } from "convex/react";
 import { toast } from "sonner";
 
@@ -21,7 +20,7 @@ import { api } from "@/convex/_generated/api";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useWorkspace } from "@/hooks/user-workspace";
 
-import { FolderDialog } from "./_components/folder-dialog";
+import { FolderDialog } from "../../(main)/_components/folder-dialog";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -30,8 +29,6 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { capitalize } from "@/utils/capitalize";
 
 export default function OverviewPage() {
-  const { user } = useUser();
-
   const router = useRouter();
 
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -44,6 +41,9 @@ export default function OverviewPage() {
   const documents = useQuery(api.documents.getDocuments);
   const updateWorkspaceName = useMutation(api.workspaces.updateWorkspaceName);
   const createDocument = useMutation(api.documents.createDocument);
+  const addWorkspaceChild = useMutation(api.workspaces.addChild);
+
+  const { setWorkspaceData } = useWorkspace();
 
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
@@ -56,10 +56,28 @@ export default function OverviewPage() {
     setIsEdit(false);
   };
 
-  const onCreate = async () => {
-    const promise = createDocument({ title: "Untitled" }).then((documentId) =>
-      router.push(`/documents/${documentId}`)
-    );
+  const onCreateDocument = async () => {
+    const promise = createDocument({
+      title: "Untitled",
+      parentWorkSpace: id,
+    }).then(async (document) => {
+      const workspace = await addWorkspaceChild({
+        workspaceId: id!,
+        child: {
+          id: document._id,
+          title: document.title,
+          icon: document.icon,
+          type: "document",
+        },
+      });
+      setWorkspaceData(
+        workspace._id,
+        workspace.name,
+        workspace.children,
+        workspace.users
+      );
+      router.push(`/document/${document._id}`);
+    });
 
     toast.promise(promise, {
       loading: "Creating a new document...",
@@ -158,7 +176,7 @@ export default function OverviewPage() {
           <Button
             className={isMobile ? "" : "w-48"}
             size="lg"
-            onClick={onCreate}
+            onClick={onCreateDocument}
           >
             <FileUp className={isMobile ? "" : "mr-2"} />
             {isMobile ? "" : "File"}
@@ -167,7 +185,7 @@ export default function OverviewPage() {
           <Button
             className={isMobile ? "" : "w-48"}
             size="lg"
-            onClick={onCreate}
+            onClick={onCreateDocument}
           >
             <NotepadText className={isMobile ? "" : "mr-2"} />
             {isMobile ? "" : "Document"}

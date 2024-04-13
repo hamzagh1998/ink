@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Id } from "@/convex/_generated/dataModel";
 import { IconPicker } from "@/components/icon-picker";
 import { Smile } from "lucide-react";
 import { useMutation } from "convex/react";
@@ -24,14 +25,17 @@ import { cn } from "@/lib/utils";
 import { useWorkspace } from "@/hooks/user-workspace";
 
 export function FolderDialog({
+  parentFolder,
   show,
   setShow,
 }: {
+  parentFolder?: Id<"folders">;
   show: boolean;
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const createFolder = useMutation(api.folders.createFolder);
-  const addChild = useMutation(api.workspaces.addChild);
+  const addFolderChild = useMutation(api.folders.addChild);
+  const addWorkspaceChild = useMutation(api.workspaces.addChild);
 
   const { setWorkspaceData } = useWorkspace();
 
@@ -104,24 +108,37 @@ export function FolderDialog({
         description: formData.description,
         isPrivate: formData.isPrivate,
         password: bcrypt.hashSync(formData.password, 10),
-        parentWorkSpace: id,
-        parentFolder: undefined,
+        parentWorkSpace: !parentFolder ? id : undefined,
+        parentFolder: parentFolder,
       });
-      const workspace = await addChild({
-        workspaceId: id!,
-        child: {
-          id: folder._id,
-          title: folder.title,
-          icon: folder.icon,
-          type: "folder",
-        },
-      });
-      setWorkspaceData(
-        workspace._id,
-        workspace.name,
-        workspace.children,
-        workspace.users
-      );
+      if (parentFolder) {
+        await addFolderChild({
+          folderId: parentFolder,
+          child: {
+            id: folder._id,
+            title: folder.title,
+            icon: folder.icon,
+            type: "folder",
+          },
+        });
+      } else {
+        // Add to the workspace
+        const workspace = await addWorkspaceChild({
+          workspaceId: id!,
+          child: {
+            id: folder._id,
+            title: folder.title,
+            icon: folder.icon,
+            type: "folder",
+          },
+        });
+        setWorkspaceData(
+          workspace._id,
+          workspace.name,
+          workspace.children,
+          workspace.users
+        );
+      }
       setFormData({
         title: "",
         icon: null,
@@ -222,7 +239,7 @@ export function FolderDialog({
                 }
               />
               <Label htmlFor="private">
-                Private: {formData.isPrivate ? "Yes" : "No"}
+                {formData.isPrivate ? "Private" : "Public"}
               </Label>
             </div>
             {formData.isPrivate ? (

@@ -67,6 +67,7 @@ export const createDocument = mutation({
   args: {
     title: v.string(),
     parentFolder: v.optional(v.id("folders")),
+    parentWorkSpace: v.optional(v.id("workspaces")),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -77,9 +78,10 @@ export const createDocument = mutation({
 
     const userId = identity.subject;
 
-    const document = await ctx.db.insert("documents", {
+    const documentId = await ctx.db.insert("documents", {
       title: args.title,
       parentFolder: args.parentFolder,
+      parentWorkSpace: args.parentWorkSpace,
       itemType: "document",
       isPrivate: false,
       userId,
@@ -88,7 +90,7 @@ export const createDocument = mutation({
       createdAt: new Date().toUTCString(),
     });
 
-    return document;
+    return checkAuthAndOwnership(ctx, userId, documentId);
   },
 });
 

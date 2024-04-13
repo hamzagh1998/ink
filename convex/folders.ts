@@ -42,6 +42,27 @@ export const getFolders = query({
   },
 });
 
+export const getFolderChildren = query({
+  args: { folderId: v.id("folders") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+
+    const folder = await ctx.db
+      .query("folders")
+      .withIndex("by_user_parent", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("_id"), args.folderId))
+      .first();
+
+    return folder?.children;
+  },
+});
+
 export const createFolder = mutation({
   args: {
     title: v.string(),
@@ -77,6 +98,36 @@ export const createFolder = mutation({
     });
 
     return await checkAuthAndOwnership(ctx, userId, folderId);
+  },
+});
+
+export const addChild = mutation({
+  args: {
+    folderId: v.id("folders"),
+    child: v.object({
+      id: v.string(),
+      type: v.string(),
+      title: v.string(),
+      icon: v.optional(v.string()),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+
+    const folder = await checkAuthAndOwnership(ctx, userId, args.folderId);
+
+    await ctx.db.patch(args.folderId, {
+      ...folder,
+      children: [...folder.children, args.child],
+    });
+
+    return await checkAuthAndOwnership(ctx, userId, args.folderId);
   },
 });
 

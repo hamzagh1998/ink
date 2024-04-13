@@ -1,7 +1,8 @@
 "use client";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
-import { ChevronsLeft, Layers, MenuIcon, Search, Trash } from "lucide-react";
+import { ChevronsLeft, MenuIcon, Search } from "lucide-react";
+import { Id } from "@/convex/_generated/dataModel";
 
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useSearch } from "@/hooks/use-search";
@@ -11,15 +12,12 @@ import { useWorkspace } from "@/hooks/user-workspace";
 import { SearchItem } from "./search";
 import { UserItem } from "./user-item";
 import { Workspace } from "./workspace";
+import { Folder } from "./folder";
+import { Document } from "./document";
+
+import { SkeletonLoader } from "@/components/skeleton-loader";
 
 import { cn } from "@/lib/utils";
-import { Folder } from "./folder";
-import { SkeletonLoader } from "@/components/skeleton-loader";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@radix-ui/react-popover";
 
 export function Navigation() {
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -117,6 +115,7 @@ export function Navigation() {
     <>
       <aside
         ref={sidebarRef}
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         className={cn(
           "group/sidebar h-full bg-secondary overflow-y-auto relative flex w-60 flex-col z-[99999]",
           isResetting && "transition-all ease-in-out duration-300",
@@ -139,19 +138,33 @@ export function Navigation() {
             <SearchItem level={1} icon={Search} onClick={search.onOpen} />
             {children ? (
               children.length ? (
-                children.map((child) =>
-                  child.type === "folder" ? (
-                    <Folder
-                      level={1}
-                      key={child.id}
-                      id={child.id}
-                      title={child.title}
-                      icon={child.icon}
-                    />
-                  ) : (
-                    <></>
+                children
+                  .sort((a, b) => {
+                    const order = { folder: 1, document: 2, file: 3 };
+
+                    return order[a.type] - order[b.type];
+                  })
+                  .map((child) =>
+                    child.type === "folder" ? (
+                      <Folder
+                        key={child.id}
+                        id={child.id as Id<"folders">}
+                        title={child.title}
+                        icon={child.icon}
+                        level={1}
+                      />
+                    ) : child.type === "document" ? (
+                      <Document
+                        key={child.id}
+                        id={child.id as Id<"documents">}
+                        title={child.title}
+                        icon={child.icon}
+                        level={1}
+                      />
+                    ) : (
+                      <></>
+                    )
                   )
-                )
               ) : (
                 <></>
               )
