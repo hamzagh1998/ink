@@ -14,6 +14,10 @@ import {
 } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { toast } from "sonner";
+import {
+  CldUploadWidget,
+  CloudinaryUploadWidgetResults,
+} from "next-cloudinary";
 
 import { api } from "@/convex/_generated/api";
 
@@ -84,6 +88,25 @@ export default function OverviewPage() {
       success: "New document created!",
       error: "Failed to create a new document.",
     });
+  };
+
+  const onUploadFile = async (results: any) => {
+    if (!results) return;
+
+    const { secure_url, original_filename, bytes, format } = results.info;
+
+    const sizeInMb = bytes / (1024 * 1024);
+
+    console.log(
+      "secure_url",
+      secure_url,
+      "original_filename",
+      original_filename,
+      "format",
+      format,
+      "sizeInMb",
+      sizeInMb
+    );
   };
 
   return (
@@ -173,14 +196,23 @@ export default function OverviewPage() {
             <FolderPlus className={isMobile ? "" : "mr-2"} />
             {isMobile ? "" : "Folder"}
           </Button>
-          <Button
-            className={isMobile ? "" : "w-48"}
-            size="lg"
-            onClick={onCreateDocument}
+          <CldUploadWidget
+            uploadPreset={process.env.NEXT_PUBLIC_PRESET_NAME!}
+            onSuccess={(results) => onUploadFile(results)}
           >
-            <FileUp className={isMobile ? "" : "mr-2"} />
-            {isMobile ? "" : "File"}
-          </Button>
+            {({ open }) => {
+              return (
+                <Button
+                  className={isMobile ? "" : "w-48"}
+                  size="lg"
+                  onClick={() => open()}
+                >
+                  <FileUp className={isMobile ? "" : "mr-2"} />
+                  {isMobile ? "" : "File"}
+                </Button>
+              );
+            }}
+          </CldUploadWidget>
 
           <Button
             className={isMobile ? "" : "w-48"}

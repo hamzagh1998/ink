@@ -72,6 +72,7 @@ export default defineSchema({
     isPublished: v.boolean(),
     isPrivate: v.optional(v.boolean()),
     password: v.optional(v.string()),
+    format: v.optional(v.string()),
     sizeInMb: v.number(),
     createdAt: v.string(),
   })
