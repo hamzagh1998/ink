@@ -24,7 +24,27 @@ async function checkAuthAndOwnership(
   return workspace;
 }
 
-export const getWorkstaionById = query({
+export const getUserWorkspace = query({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+
+    const workspace = await ctx.db
+      .query("workspaces")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("userId"), userId))
+      .first();
+
+    return workspace;
+  },
+});
+
+export const getWorkspaceById = query({
   args: { workspaceId: v.string() },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -39,8 +59,7 @@ export const getWorkstaionById = query({
       .query("workspaces")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("_id"), args.workspaceId))
-      .order("desc")
-      .collect();
+      .first();
 
     return workspace;
   },

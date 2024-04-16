@@ -65,6 +65,7 @@ export default defineSchema({
   files: defineTable({
     title: v.string(),
     userId: v.string(),
+    url: v.string(),
     isArchived: v.boolean(),
     parentFolder: v.optional(v.id("folders")),
     parentWorkSpace: v.optional(v.id("workspaces")),

@@ -14,6 +14,7 @@ import { UserItem } from "./user-item";
 import { Workspace } from "./workspace";
 import { Folder } from "./folder";
 import { Document } from "./document";
+import { Files } from "./file";
 
 import { SkeletonLoader } from "@/components/skeleton-loader";
 
@@ -162,7 +163,11 @@ export function Navigation() {
                         level={1}
                       />
                     ) : (
-                      <></>
+                      <Files
+                        key={child.id}
+                        id={child.id as Id<"files">}
+                        level={1}
+                      />
                     )
                   )
               ) : (
