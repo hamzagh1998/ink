@@ -213,18 +213,46 @@ export const update = mutation({
 
     const { id, ...rest } = args;
 
-    const existingDocument = await ctx.db.get(args.id);
+    const document = await ctx.db.get(args.id);
 
-    if (!existingDocument) {
+    if (!document) {
       throw new Error("Not found");
     }
 
-    if (existingDocument.userId !== userId) {
+    if (document.userId !== userId) {
       throw new Error("Unauthorized");
     }
-    const updatedDocument = await ctx.db.patch(id, rest);
 
-    return updatedDocument;
+    await ctx.db.patch(id, rest);
+
+    const parentType = document.parentFolder ? "folders" : "workspaces";
+    const parentId: Id<"workspaces" | "folders"> = document.parentFolder
+      ? document.parentFolder!
+      : document.parentWorkSpace!;
+
+    const parent = await ctx.db
+      .query(parentType)
+      .withIndex("by_user", (q: any) => q.eq("userId", userId))
+      .filter((q: any) => q.eq(q.field("_id"), parentId))
+      .first();
+
+    if (parent?.children) {
+      const updatedChildren = parent.children.map((child) =>
+        child.id === document._id
+          ? {
+              ...child,
+              title: args.title ? args.title : document.title,
+              icon: args.icon,
+            }
+          : child
+      );
+
+      await ctx.db.patch(parentId, {
+        ...parent,
+        children: updatedChildren,
+      });
+    }
+    return await checkAuthAndOwnership(ctx, userId, args.id);
   },
 });
 
@@ -239,13 +267,13 @@ export const removeIcon = mutation({
 
     const userId = identity.subject;
 
-    const existingDocument = await ctx.db.get(args.id);
+    const document = await ctx.db.get(args.id);
 
-    if (!existingDocument) {
+    if (!document) {
       throw new Error("Not found");
     }
 
-    if (existingDocument.userId !== userId) {
+    if (document.userId !== userId) {
       throw new Error("Unauthorized");
     }
     const updatedDocument = await ctx.db.patch(args.id, {
@@ -267,13 +295,13 @@ export const removeCoverImage = mutation({
 
     const userId = identity.subject;
 
-    const existingDocument = await ctx.db.get(args.id);
+    const document = await ctx.db.get(args.id);
 
-    if (!existingDocument) {
+    if (!document) {
       throw new Error("Not found");
     }
 
-    if (existingDocument.userId !== userId) {
+    if (document.userId !== userId) {
       throw new Error("Unauthorized");
     }
 

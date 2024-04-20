@@ -14,9 +14,9 @@ import {
   NotepadText,
   Trash,
 } from "lucide-react";
+import { CldUploadWidget } from "next-cloudinary";
 
 import { api } from "@/convex/_generated/api";
-import { useSearch } from "@/hooks/use-search";
 
 import { FolderDialog } from "./folder-dialog";
 
@@ -51,6 +51,7 @@ export function Folder({ level, id, title, icon }: FolderProps) {
   const createDocument = useMutation(api.documents.createDocument);
   const addFolderChild = useMutation(api.folders.addChild);
   const deleteFolder = useMutation(api.folders.deleteFolder);
+  const saveFile = useMutation(api.files.saveFile);
 
   const { setWorkspaceData } = useWorkspace();
 
@@ -94,6 +95,37 @@ export function Folder({ level, id, title, icon }: FolderProps) {
     }
     router.push("/overview");
   };
+
+  const onUploadFile = async (results: any) => {
+    if (!results) return;
+
+    const { secure_url, original_filename, bytes, format } = results.info;
+
+    const sizeInMb = bytes / (1024 * 1024);
+
+    const file = await saveFile({
+      title: original_filename,
+      url: secure_url,
+      format,
+      sizeInMb,
+      parentFolder: id,
+    });
+    const workspaceData = await addFolderChild({
+      folderId: id,
+      child: {
+        id: file._id,
+        title: file.title,
+        type: "file",
+      },
+    });
+    setWorkspaceData(
+      workspaceData._id,
+      workspaceData.name,
+      workspaceData.children,
+      workspaceData.users
+    );
+  };
+
   return (
     <main>
       <div
@@ -101,7 +133,6 @@ export function Folder({ level, id, title, icon }: FolderProps) {
         style={{
           paddingLeft: level ? `${level * 12 + 12}px` : "12px",
         }}
-        onClick={() => setIsOpen(!isOpen)}
       >
         <div className="w-full flex justify-between items-center line-clamp-1">
           <div className="flex justify-center items-center gap-2">
@@ -109,11 +140,13 @@ export function Folder({ level, id, title, icon }: FolderProps) {
               <ChevronDown
                 className="hover:text-secondary-foreground"
                 size={18}
+                onClick={() => setIsOpen(false)}
               />
             ) : (
               <ChevronRight
                 className="hover:text-secondary-foreground"
                 size={18}
+                onClick={() => setIsOpen(true)}
               />
             )}
             {icon ? (
@@ -144,8 +177,23 @@ export function Folder({ level, id, title, icon }: FolderProps) {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
-                <FileUp size={18} />
-                &ensp; Add File
+                <CldUploadWidget
+                  uploadPreset={process.env.NEXT_PUBLIC_PRESET_NAME!}
+                  onSuccess={(results) => onUploadFile(results)}
+                >
+                  {({ open }) => (
+                    <div
+                      className="flex justify-start items-center w-full h-full cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent the event from bubbling up
+                        open();
+                      }}
+                    >
+                      <FileUp size={18} />
+                      &ensp; Add File
+                    </div>
+                  )}
+                </CldUploadWidget>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onCreateDocument}>

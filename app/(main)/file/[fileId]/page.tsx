@@ -97,7 +97,7 @@ export default function FileDetailPage() {
               </p>
             </div>
           ) : (
-            <div className="p-4 w-1/3 h-1/2 max-sm:h-full max-sm:w-full">
+            <div className="p-4 w-1/2 h-1/2 max-sm:h-full max-sm:w-full">
               <CldVideoPlayer
                 width="800"
                 height="800"

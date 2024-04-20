@@ -216,18 +216,16 @@ export default function OverviewPage() {
                 uploadPreset={process.env.NEXT_PUBLIC_PRESET_NAME!}
                 onSuccess={(results) => onUploadFile(results)}
               >
-                {({ open }) => {
-                  return (
-                    <Button
-                      className={isMobile ? "" : "w-48"}
-                      size="lg"
-                      onClick={() => open()}
-                    >
-                      <FileUp className={isMobile ? "" : "mr-2"} />
-                      {isMobile ? "" : "File"}
-                    </Button>
-                  );
-                }}
+                {({ open }) => (
+                  <Button
+                    className={isMobile ? "" : "w-48"}
+                    size="lg"
+                    onClick={() => open()}
+                  >
+                    <FileUp className={isMobile ? "" : "mr-2"} />
+                    {isMobile ? "" : "File"}
+                  </Button>
+                )}
               </CldUploadWidget>
 
               <Button
