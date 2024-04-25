@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
 import { NotepadText, Trash2Icon } from "lucide-react";
 
@@ -18,25 +18,13 @@ interface DocumentProps {
 export function Document({ level, id, title, icon }: DocumentProps) {
   const router = useRouter();
 
-  const initUserWorkspace = useMutation(api.workspaces.initUserWorkspace);
   const deleteDocument = useMutation(api.documents.deleteDocument);
-
-  const { setWorkspaceData } = useWorkspace();
 
   const [isOpen, setIsOpen] = useState(false);
 
-  const updateWorkspace = async () => {
-    await deleteDocument({ id });
-    const workspace = await initUserWorkspace({});
-    if (workspace) {
-      setWorkspaceData(
-        workspace._id,
-        workspace.name,
-        workspace.children,
-        workspace.usersIds
-      );
-    }
+  const updateWorkspace = () => {
     router.push("/overview");
+    deleteDocument({ id });
   };
 
   return (

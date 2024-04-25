@@ -148,7 +148,7 @@ export const deleteDocument = mutation({
         ? document.parentFolder
         : document.parentWorkSpace;
       await removeFromParent(ctx, document._id, parent, type);
-      await ctx.db.delete(args.id);
+      await ctx.db.delete(document._id);
     }
   },
 });
@@ -223,7 +223,14 @@ export const update = mutation({
       throw new Error("Unauthorized");
     }
 
-    await ctx.db.patch(id, rest);
+    await ctx.db.patch(id, {
+      ...rest,
+      icon: args.icon
+        ? args.icon === "remove"
+          ? undefined
+          : args.icon
+        : document.icon,
+    });
 
     const parentType = document.parentFolder ? "folders" : "workspaces";
     const parentId: Id<"workspaces" | "folders"> = document.parentFolder
@@ -242,7 +249,11 @@ export const update = mutation({
           ? {
               ...child,
               title: args.title ? args.title : document.title,
-              icon: args.icon,
+              icon: args.icon
+                ? args.icon === "remove"
+                  ? undefined
+                  : args.icon
+                : child.icon,
             }
           : child
       );
@@ -253,34 +264,6 @@ export const update = mutation({
       });
     }
     return await checkAuthAndOwnership(ctx, userId, args.id);
-  },
-});
-
-export const removeIcon = mutation({
-  args: { id: v.id("documents") },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
-    const userId = identity.subject;
-
-    const document = await ctx.db.get(args.id);
-
-    if (!document) {
-      throw new Error("Not found");
-    }
-
-    if (document.userId !== userId) {
-      throw new Error("Unauthorized");
-    }
-    const updatedDocument = await ctx.db.patch(args.id, {
-      icon: undefined,
-    });
-
-    return updatedDocument;
   },
 });
 

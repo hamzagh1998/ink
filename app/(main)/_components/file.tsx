@@ -7,8 +7,6 @@ import { icons, Trash2Icon } from "lucide-react";
 
 import { api } from "@/convex/_generated/api";
 
-import { useWorkspace } from "@/hooks/user-workspace";
-
 import { fileTypes } from "@/utils/files-icons";
 
 interface FilesProps {
@@ -21,24 +19,12 @@ export function Files({ level, id }: FilesProps) {
 
   const file = useQuery(api.files.getFileById, { id });
   const deleteFile = useMutation(api.files.deleteFile);
-  const initUserWorkspace = useMutation(api.workspaces.initUserWorkspace);
-
-  const { setWorkspaceData } = useWorkspace();
 
   const [isOpen, setIsOpen] = useState(false);
 
   const updateWorkspace = async () => {
-    await deleteFile({ id });
-    const workspace = await initUserWorkspace({});
-    if (workspace) {
-      setWorkspaceData(
-        workspace._id,
-        workspace.name,
-        workspace.children,
-        workspace.usersIds
-      );
-    }
     router.push("/overview");
+    deleteFile({ id });
   };
 
   let extension = "raw";

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { ElementRef, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Database,
@@ -15,6 +15,7 @@ import {
 import { useMutation, useQuery } from "convex/react";
 import { toast } from "sonner";
 import { CldUploadWidget } from "next-cloudinary";
+import TextareaAutosize from "react-textarea-autosize";
 
 import { api } from "@/convex/_generated/api";
 
@@ -28,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { capitalize } from "@/utils/capitalize";
+import { cn } from "@/lib/utils";
 
 export default function OverviewPage() {
   const router = useRouter();
@@ -37,6 +39,8 @@ export default function OverviewPage() {
   const { id, name, setWorkspaceName } = useWorkspace();
 
   const saveFile = useMutation(api.files.saveFile);
+
+  const inputRef = useRef<ElementRef<"textarea">>(null);
 
   const workspace = useQuery(api.workspaces.getUserWorkspace);
   const profile = useQuery(api.profiles.getProfile, { skip: false });
@@ -58,6 +62,16 @@ export default function OverviewPage() {
       name: workspace?.name!,
     });
     setIsEdit(false);
+  };
+
+  const disableInput = () => setIsEdit(false);
+
+  const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      disableInput();
+      onSave();
+    }
   };
 
   const onCreateDocument = async () => {
@@ -124,19 +138,25 @@ export default function OverviewPage() {
     <div className="h-full flex flex-col items-center justify-center space-y-4">
       {workspace ? (
         <>
-          <h2 className="flex items-center justify-center gap-4 mb-12 text-4xl font-medium max-sm:text-2xl">
+          <h2
+            className={cn(
+              "flex items-center justify-start gap-4 mb-12 text-4xl font-medium max-sm:text-2xl",
+              isMobile ? "p-0 w-[87%]" : "w-[582px]"
+            )}
+          >
             {isEdit ? (
-              <Input
-                type="text"
+              <TextareaAutosize
+                ref={inputRef}
+                onBlur={disableInput}
+                onKeyDown={onKeyDown}
                 value={name}
                 onChange={(e) => setWorkspaceName(e.target.value)}
+                className="text-4xl bg-transparent font-bold break-words outline-none text-[#3F3F3F] dark:text-[#CFCFCF] resize-none max-sm:text-2xl"
               />
             ) : (
               name
             )}
-            {isEdit ? (
-              <Save className="cursor-pointer" onClick={onSave} />
-            ) : (
+            {!isEdit && (
               <PenIcon
                 className="cursor-pointer"
                 onClick={() => setIsEdit(true)}

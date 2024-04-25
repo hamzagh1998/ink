@@ -47,13 +47,10 @@ export function Folder({ level, id, title, icon }: FolderProps) {
   const folderChildren = useQuery(api.folders.getFolderChildren, {
     folderId: id,
   });
-  const initUserWorkspace = useMutation(api.workspaces.initUserWorkspace);
   const createDocument = useMutation(api.documents.createDocument);
   const addFolderChild = useMutation(api.folders.addChild);
   const deleteFolder = useMutation(api.folders.deleteFolder);
   const saveFile = useMutation(api.files.saveFile);
-
-  const { setWorkspaceData } = useWorkspace();
 
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -83,17 +80,8 @@ export function Folder({ level, id, title, icon }: FolderProps) {
   };
 
   const updateWorkspace = async () => {
-    await deleteFolder({ id });
-    const workspace = await initUserWorkspace({});
-    if (workspace) {
-      setWorkspaceData(
-        workspace._id,
-        workspace.name,
-        workspace.children,
-        workspace.usersIds
-      );
-    }
     router.push("/overview");
+    await deleteFolder({ id });
   };
 
   const onUploadFile = async (results: any) => {
@@ -110,20 +98,6 @@ export function Folder({ level, id, title, icon }: FolderProps) {
       sizeInMb,
       parentFolder: id,
     });
-    const workspaceData = await addFolderChild({
-      folderId: id,
-      child: {
-        id: file._id,
-        title: file.title,
-        type: "file",
-      },
-    });
-    setWorkspaceData(
-      workspaceData._id,
-      workspaceData.name,
-      workspaceData.children,
-      workspaceData.users
-    );
   };
 
   return (

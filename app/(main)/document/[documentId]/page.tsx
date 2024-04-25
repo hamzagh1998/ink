@@ -3,8 +3,6 @@ import { useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useMutation, useQuery } from "convex/react";
 
-import Editor from "@/components/editor";
-
 import { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
 import { Skeleton } from "@/components/ui/skeleton";

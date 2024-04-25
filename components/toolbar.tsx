@@ -60,7 +60,7 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
   const onRemoveIcon = () => {
     update({
       id: initialData._id,
-      icon: "",
+      icon: "remove",
     });
   };
 

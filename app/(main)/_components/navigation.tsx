@@ -19,9 +19,13 @@ import { Files } from "./file";
 import { SkeletonLoader } from "@/components/skeleton-loader";
 
 import { cn } from "@/lib/utils";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 export function Navigation() {
   const isMobile = useMediaQuery("(max-width: 768px)");
+
+  const workspace = useQuery(api.workspaces.getUserWorkspace);
 
   const router = useRouter();
 
@@ -137,12 +141,12 @@ export function Navigation() {
           <UserItem />
           <Workspace>
             <SearchItem level={1} icon={Search} onClick={search.onOpen} />
-            {children ? (
-              children.length ? (
-                children
+            {workspace ? (
+              workspace.children?.length ? (
+                workspace.children
                   .sort((a, b) => {
                     const order = { folder: 1, document: 2, file: 3 };
-
+                    //@ts-ignore
                     return order[a.type] - order[b.type];
                   })
                   .map((child) =>
