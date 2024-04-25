@@ -39,9 +39,10 @@ interface FolderProps {
   id: Id<"folders">;
   title: string;
   icon?: string;
+  onOpen: () => void;
 }
 
-export function Folder({ level, id, title, icon }: FolderProps) {
+export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
   const router = useRouter();
 
   const folderChildren = useQuery(api.folders.getFolderChildren, {
@@ -123,13 +124,15 @@ export function Folder({ level, id, title, icon }: FolderProps) {
                 onClick={() => setIsOpen(true)}
               />
             )}
-            {icon ? (
-              <div>{icon}</div>
-            ) : isOpen ? (
-              <FolderOpen size={18} />
-            ) : (
-              <FolderClosed size={18} />
-            )}
+            <div onClick={() => router.push("/folder/" + id)}>
+              {icon ? (
+                <div>{icon}</div>
+              ) : isOpen ? (
+                <FolderOpen size={18} onClick={() => setIsOpen(false)} />
+              ) : (
+                <FolderClosed size={18} onClick={() => setIsOpen(true)} />
+              )}
+            </div>
             <p
               className="hover:text-secondary-foreground line-clamp-1"
               onClick={() => router.push("/folder/" + id)}
@@ -145,7 +148,12 @@ export function Folder({ level, id, title, icon }: FolderProps) {
               />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setShowFolderModal(true)}>
+              <DropdownMenuItem
+                onClick={() => {
+                  setShowFolderModal(true);
+                  onOpen();
+                }}
+              >
                 <FolderPlus size={18} />
                 &ensp; Add Folder
               </DropdownMenuItem>
@@ -200,6 +208,7 @@ export function Folder({ level, id, title, icon }: FolderProps) {
                   title={child.title}
                   icon={child.icon}
                   level={level + 1}
+                  onOpen={onOpen}
                 />
               ) : child.type === "document" ? (
                 <Document

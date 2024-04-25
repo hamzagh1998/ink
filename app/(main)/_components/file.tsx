@@ -69,16 +69,16 @@ export function Files({ level, id }: FilesProps) {
           style={{
             paddingLeft: level ? `${level * 12 + 12}px` : "12px",
           }}
-          onClick={() => setIsOpen(!isOpen)}
         >
           <div className="w-full flex justify-between items-center">
-            <div className="flex justify-center items-center gap-2 hover:text-secondary-foreground">
+            <div
+              className="flex justify-center items-center gap-2 hover:text-secondary-foreground"
+              onClick={onSeeDetail}
+            >
               <div className="w-4 h-4">
                 <LucideIcon size={18} />
               </div>
-              <p className="line-clamp-1" onClick={onSeeDetail}>
-                {file!.title}
-              </p>
+              <p className="line-clamp-1">{file!.title}</p>
             </div>
             <Trash2Icon
               onClick={updateWorkspace}

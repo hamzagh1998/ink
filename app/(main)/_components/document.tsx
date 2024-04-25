@@ -38,7 +38,9 @@ export function Document({ level, id, title, icon }: DocumentProps) {
       >
         <div className="w-full flex justify-between items-center">
           <div className="flex justify-center items-center gap-2 hover:text-secondary-foreground">
-            {icon ? <div>{icon}</div> : <NotepadText size={18} />}
+            <div onClick={() => router.push("/document/" + id)}>
+              {icon ? <div>{icon}</div> : <NotepadText size={18} />}
+            </div>
             <p
               className="line-clamp-1"
               onClick={() => router.push("/document/" + id)}

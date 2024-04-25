@@ -6,6 +6,7 @@ import { Id } from "@/convex/_generated/dataModel";
 
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useSearch } from "@/hooks/use-search";
+import { useFolder } from "@/hooks/use-folder";
 import { useSettings } from "@/hooks/use-settings";
 import { useWorkspace } from "@/hooks/user-workspace";
 
@@ -32,6 +33,7 @@ export function Navigation() {
   const settings = useSettings();
   const params = useParams();
   const search = useSearch();
+  const folder = useFolder();
   const pathname = usePathname();
   const { children } = useWorkspace();
 
@@ -42,12 +44,12 @@ export function Navigation() {
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
 
   useEffect(() => {
-    if (isMobile || search.isOpen) {
+    if (isMobile && (search.isOpen || folder.isOpen)) {
       collapse();
     } else {
       resetWidth();
     }
-  }, [isMobile, search]);
+  }, [isMobile, search, folder]);
 
   useEffect(() => {
     if (isMobile) {
@@ -157,6 +159,7 @@ export function Navigation() {
                         title={child.title}
                         icon={child.icon}
                         level={1}
+                        onOpen={folder.onOpen}
                       />
                     ) : child.type === "document" ? (
                       <Document

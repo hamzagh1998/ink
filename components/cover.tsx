@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useCoverImage } from "@/hooks/use-cover-image";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 interface CoverImageProps {
   url?: string;
@@ -21,9 +22,9 @@ export const Cover = ({ url, preview }: CoverImageProps) => {
   const coverImage = useCoverImage();
   const removeCoverImage = useMutation(api.documents.removeCoverImage);
 
-  // const onRemove = async () => {
-
-  // };
+  const onRemove = async () => {
+    await removeCoverImage({ id: params.documentId as Id<"documents"> });
+  };
 
   return (
     <div
@@ -33,7 +34,7 @@ export const Cover = ({ url, preview }: CoverImageProps) => {
         url && "bg-muted"
       )}
     >
-      {!!url && <Image src={url} fill alt="Cover" className="object-cover" />}
+      {url && <Image src={url} fill alt="Cover" className="object-cover" />}
       {url && !preview && (
         <div className="opacity-0 group-hover:opacity-100 absolute bottom-5 right-5 flex items-center gap-x-2">
           <Button
@@ -46,7 +47,7 @@ export const Cover = ({ url, preview }: CoverImageProps) => {
             Change cover
           </Button>
           <Button
-            // onClick={onRemove}
+            onClick={onRemove}
             className="text-muted-foreground text-xs"
             variant="outline"
             size="sm"

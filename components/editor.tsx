@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useTheme } from "next-themes";
 import { BlockNoteEditor, PartialBlock } from "@blocknote/core";
 import "@blocknote/core/fonts/inter.css";
@@ -8,6 +7,7 @@ import {
   useEditorChange,
 } from "@blocknote/react";
 import "@blocknote/react/style.css";
+import "./styles.css";
 
 interface EditorProps {
   onChange: (value: string) => void;
@@ -40,6 +40,7 @@ export default function Editor({ onChange, initialContent }: EditorProps) {
       <BlockNoteView
         editor={editor}
         theme={resolvedTheme === "dark" ? "dark" : "light"}
+        data-theming-css-variables-demo
       />
     </div>
   );
