@@ -42,6 +42,27 @@ export const getFolders = query({
   },
 });
 
+export const getFolder = query({
+  args: { id: v.id("folders") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+
+    const folders = await ctx.db
+      .query("folders")
+      .withIndex("by_user_parent", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("_id"), args.id))
+      .first();
+
+    return folders;
+  },
+});
+
 export const getFolderChildren = query({
   args: { folderId: v.id("folders") },
   handler: async (ctx, args) => {
@@ -98,6 +119,60 @@ export const createFolder = mutation({
     });
 
     return await checkAuthAndOwnership(ctx, userId, folderId);
+  },
+});
+export const updateFolderName = mutation({
+  args: {
+    title: v.string(),
+    icon: v.optional(v.string()),
+    folderId: v.id("folders"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+
+    const folder = await checkAuthAndOwnership(ctx, userId, args.folderId);
+
+    await ctx.db.patch(args.folderId, {
+      ...folder,
+      title: args.title,
+      icon: args.icon,
+    });
+
+    const parentType = folder.parentFolder ? "folders" : "workspaces";
+    const parentId: Id<"workspaces" | "folders"> = folder.parentFolder
+      ? folder.parentFolder!
+      : folder.parentWorkSpace!;
+
+    const parent = await ctx.db
+      .query(parentType)
+      .withIndex("by_user", (q: any) => q.eq("userId", userId))
+      .filter((q: any) => q.eq(q.field("_id"), parentId))
+      .first();
+
+    if (parent?.children) {
+      const updatedChildren = parent.children.map((child) =>
+        child.id === folder._id
+          ? {
+              ...child,
+              title: args.title ? args.title : folder.title,
+              icon: args.icon,
+            }
+          : child
+      );
+
+      await ctx.db.patch(parentId, {
+        ...parent,
+        children: updatedChildren,
+      });
+    }
+
+    return await checkAuthAndOwnership(ctx, userId, args.folderId);
   },
 });
 
