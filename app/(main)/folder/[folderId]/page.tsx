@@ -11,6 +11,7 @@ import { ElementRef, useEffect, useRef, useState } from "react";
 import { IconPicker } from "@/components/icon-picker";
 import { Button } from "@/components/ui/button";
 import { FilePlus, FolderPlus, NotepadText, Smile, X } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function FolderDetailPage() {
   const { folderId } = useParams();
@@ -61,10 +62,29 @@ export default function FolderDetailPage() {
     setFolderName(folder.title);
   }, [folder]);
 
-  console.log(folder);
-
   if (!folder) {
-    return;
+    return (
+      <div className="p-12 max-sm:p-4">
+        <div className="flex justify-between items-center">
+          <div className="fex justify-center items-end gap-2">
+            <div className="flex items-end justify-center gap-4 group/icon pt-6">
+              <p className="text-6xl hover:opacity-75 transition max-sm:text-2xl">
+                <Skeleton className="h-14 w-[60px]" />
+              </p>
+              <h2
+                className={cn(
+                  "flex items-center justify-start gap-4 text-6xl font-medium max-sm:text-2xl cursor-pointer",
+                  isMobile ? "p-0 w-[87%]" : "w-[582px]"
+                )}
+                onClick={() => setIsEdit(true)}
+              >
+                <Skeleton className="h-14 w-[45%]" />
+              </h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -117,6 +137,24 @@ export default function FolderDetailPage() {
           <FilePlus className="cursor-pointer" size={isMobile ? 18 : 32} />
           <NotepadText className="cursor-pointer" size={isMobile ? 18 : 32} />
         </div>
+      </div>
+      <div className="w-full h-[1px] bg-slate-400 mt-6"></div>
+      <div className="w-full mt-6 flex justify-start items-center gap-[1%]  flex-wrap">
+        {folder.children?.length ? (
+          folder.children.map((child) => (
+            <div
+              key={child.id}
+              className="w-[24%] h-14 border border-secondary mb-4 max-sm:w-[49%]"
+            >
+              <div className="flex justify-center items-center">
+                {child.icon}
+                {child.title}
+              </div>
+            </div>
+          ))
+        ) : (
+          <></>
+        )}
       </div>
     </div>
   );
