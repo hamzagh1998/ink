@@ -1,12 +1,11 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
 import { NotepadText, Trash2Icon } from "lucide-react";
 
 import { api } from "@/convex/_generated/api";
-import { useWorkspace } from "@/hooks/user-workspace";
 
 interface DocumentProps {
   id: Id<"documents">;

@@ -2,6 +2,15 @@
 import { useParams } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import TextareaAutosize from "react-textarea-autosize";
+import {
+  File,
+  FilePlus,
+  FolderClosed,
+  FolderPlus,
+  Inbox,
+  NotepadText,
+  Smile,
+} from "lucide-react";
 
 import { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
@@ -10,8 +19,9 @@ import { cn } from "@/lib/utils";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { IconPicker } from "@/components/icon-picker";
 import { Button } from "@/components/ui/button";
-import { FilePlus, FolderPlus, NotepadText, Smile, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 
 export default function FolderDetailPage() {
   const { folderId } = useParams();
@@ -139,21 +149,49 @@ export default function FolderDetailPage() {
         </div>
       </div>
       <div className="w-full h-[1px] bg-slate-400 mt-6"></div>
-      <div className="w-full mt-6 flex justify-start items-center gap-[1%]  flex-wrap">
+      <div className="w-full mt-6 flex justify-start items-center gap-[1%] flex-wrap">
         {folder.children?.length ? (
           folder.children.map((child) => (
-            <div
+            <Card
+              className="relative w-[24%] h-64 mb-4 max-sm:w-[49%]"
               key={child.id}
-              className="w-[24%] h-14 border border-secondary mb-4 max-sm:w-[49%]"
             >
-              <div className="flex justify-center items-center">
-                {child.icon}
-                {child.title}
-              </div>
-            </div>
+              <CardHeader className="h-[75%] flex items-center justify-center">
+                {child.type === "folder" ? (
+                  <FolderClosed className="w-full h-full" />
+                ) : child.type === "file" ? (
+                  <File className="w-full h-full" />
+                ) : (
+                  <NotepadText className="w-full h-full" />
+                )}
+              </CardHeader>
+              <CardContent className="flex w-full items-start justify-center">
+                <Link
+                  href={
+                    (child.type === "folder"
+                      ? "/folder/"
+                      : child.type === "document"
+                        ? "/document/"
+                        : "/file/") + child.id
+                  }
+                >
+                  <p className="text-left text-xl max-sm:text-md font-bold text-secondary-foreground cursor-pointer hover:underline">
+                    {child.icon}
+                    {child.title.length > 20 && isMobile
+                      ? child.title.slice(0, 17) + "..."
+                      : child.title}
+                  </p>
+                </Link>
+              </CardContent>
+            </Card>
           ))
         ) : (
-          <></>
+          <div className="w-full h-full text-center">
+            <Inbox className="w-[30%] h-[20%] m-auto" />
+            <p className="font-bold text-2xl max-sm:text-lg">
+              This Folder is empty!
+            </p>
+          </div>
         )}
       </div>
     </div>
