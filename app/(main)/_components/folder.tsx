@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { SkeletonLoader } from "@/components/skeleton-loader";
 import { Document } from "./document";
 import { useWorkspace } from "@/hooks/user-workspace";
+import { Files } from "./file";
 
 interface FolderProps {
   level: number;
@@ -98,6 +99,14 @@ export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
       format,
       sizeInMb,
       parentFolder: id,
+    });
+    await addFolderChild({
+      folderId: id!,
+      child: {
+        id: file._id,
+        title: file.title,
+        type: "folder",
+      },
     });
   };
 
@@ -200,7 +209,7 @@ export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
       >
         {isOpen ? (
           folderChildren ? (
-            folderChildren.map((child) =>
+            folderChildren.map((child: any) =>
               child.type === "folder" ? (
                 <Folder
                   key={child.id}
@@ -219,7 +228,11 @@ export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
                   level={level + 1}
                 />
               ) : (
-                <></>
+                <Files
+                  key={child.id}
+                  id={child.id as Id<"files">}
+                  level={level + 1}
+                />
               )
             )
           ) : (

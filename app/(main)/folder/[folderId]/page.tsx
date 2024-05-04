@@ -1,5 +1,5 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import TextareaAutosize from "react-textarea-autosize";
 import {
@@ -22,20 +22,28 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { FolderDialog } from "../../_components/folder-dialog";
+import { CldUploadWidget } from "next-cloudinary";
 
 export default function FolderDetailPage() {
+  const router = useRouter();
   const { folderId } = useParams();
 
   const folder = useQuery(api.folders.getFolder, {
     id: folderId as Id<"folders">,
   });
   const updateFolderName = useMutation(api.folders.updateFolderName);
+  const createDocument = useMutation(api.documents.createDocument);
+  const addFolderChild = useMutation(api.folders.addChild);
+  const saveFile = useMutation(api.files.saveFile);
 
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   const inputRef = useRef<ElementRef<"textarea">>(null);
 
   const [isEdit, setIsEdit] = useState(false);
+
+  const [showFolderModal, setShowFolderModal] = useState(false);
 
   const [folderName, setFolderName] = useState("");
 
@@ -46,6 +54,24 @@ export default function FolderDetailPage() {
       icon: folder?.icon,
     });
     setIsEdit(false);
+  };
+
+  const onCreateDocument = async () => {
+    const promise = createDocument({
+      title: "Untitled",
+      parentFolder: folderId as Id<"folders">,
+    }).then(async (document) => {
+      await addFolderChild({
+        folderId: folderId as Id<"folders">,
+        child: {
+          id: document._id,
+          title: document.title,
+          icon: document.icon,
+          type: "document",
+        },
+      });
+      router.push(`/document/${document._id}`);
+    });
   };
 
   const disableInput = () => setIsEdit(false);
@@ -66,11 +92,61 @@ export default function FolderDetailPage() {
     });
   };
 
+  const onUploadFile = async (results: any) => {
+    if (!results) return;
+
+    const { secure_url, original_filename, bytes, format } = results.info;
+
+    const sizeInMb = bytes / (1024 * 1024);
+
+    const file = await saveFile({
+      title: original_filename,
+      url: secure_url,
+      format,
+      sizeInMb,
+      parentFolder: folderId as Id<"folders">,
+    });
+    await addFolderChild({
+      folderId: folderId as Id<"folders">,
+      child: {
+        id: file._id,
+        title: file.title,
+        type: "file",
+      },
+    });
+  };
+
   useEffect(() => {
     if (!folder) return;
 
     setFolderName(folder.title);
   }, [folder]);
+
+  const onSeeFileDetail = async (file: any) => {
+    if (!file) return;
+
+    const viwedFiles = [
+      "png",
+      "jpg",
+      "jpeg",
+      "svg",
+      "gif",
+      "bmp",
+      "mp3",
+      "avi",
+      "mp4",
+      "mkv",
+      "mov",
+      "webm",
+    ];
+    const format = file.format || "";
+    if (!viwedFiles.includes(format)) {
+      return window.open(file.url, "_blank");
+    }
+    router.push(
+      `/file/${file.id}?title=${encodeURIComponent(file.title)}&fileType=${encodeURIComponent(format)}&url=${encodeURIComponent(file.url)}`
+    );
+  };
 
   if (!folder) {
     return (
@@ -143,9 +219,37 @@ export default function FolderDetailPage() {
           </div>
         </div>
         <div className="flex justify-center items-end gap-4">
-          <FolderPlus className="cursor-pointer" size={isMobile ? 18 : 32} />
-          <FilePlus className="cursor-pointer" size={isMobile ? 18 : 32} />
-          <NotepadText className="cursor-pointer" size={isMobile ? 18 : 32} />
+          <FolderPlus
+            className="cursor-pointer"
+            size={isMobile ? 18 : 32}
+            onClick={() => setShowFolderModal(true)}
+          />
+          <div>
+            <CldUploadWidget
+              uploadPreset={process.env.NEXT_PUBLIC_PRESET_NAME!}
+              onSuccess={(results) => onUploadFile(results)}
+            >
+              {({ open }) => (
+                <div
+                  className="flex justify-start items-center w-full h-full cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent the event from bubbling up
+                    open();
+                  }}
+                >
+                  <FilePlus
+                    className="cursor-pointer"
+                    size={isMobile ? 18 : 32}
+                  />
+                </div>
+              )}
+            </CldUploadWidget>
+          </div>
+          <NotepadText
+            className="cursor-pointer"
+            size={isMobile ? 18 : 32}
+            onClick={onCreateDocument}
+          />
         </div>
       </div>
       <div className="w-full h-[1px] bg-slate-400 mt-6"></div>
@@ -194,6 +298,11 @@ export default function FolderDetailPage() {
           </div>
         )}
       </div>
+      <FolderDialog
+        parentFolder={folderId as Id<"folders">}
+        show={showFolderModal}
+        setShow={setShowFolderModal}
+      />
     </div>
   );
 }
