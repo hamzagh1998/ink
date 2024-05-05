@@ -6,6 +6,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { NotepadText, Trash2Icon } from "lucide-react";
 
 import { api } from "@/convex/_generated/api";
+import { ConfirmAlert } from "@/components/confirm-alert";
 
 interface DocumentProps {
   id: Id<"documents">;
@@ -47,11 +48,15 @@ export function Document({ level, id, title, icon }: DocumentProps) {
               {title}
             </p>
           </div>
-          <Trash2Icon
-            onClick={updateWorkspace}
-            className="hover:text-destructive"
-            size={18}
-          />
+          <div>
+            <ConfirmAlert
+              title="Are you absolutely sure"
+              content="This action cannot be undone. This will permanently delete this document"
+              cb={updateWorkspace}
+            >
+              <Trash2Icon className="hover:text-destructive" size={18} />
+            </ConfirmAlert>
+          </div>
         </div>
       </div>
     </main>

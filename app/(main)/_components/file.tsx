@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
@@ -8,6 +8,7 @@ import { icons, Trash2Icon } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 
 import { fileTypes } from "@/utils/files-icons";
+import { ConfirmAlert } from "@/components/confirm-alert";
 
 interface FilesProps {
   id: Id<"files">;
@@ -19,8 +20,6 @@ export function Files({ level, id }: FilesProps) {
 
   const file = useQuery(api.files.getFileById, { id });
   const deleteFile = useMutation(api.files.deleteFile);
-
-  const [isOpen, setIsOpen] = useState(false);
 
   const updateWorkspace = async () => {
     router.push("/overview");
@@ -80,11 +79,15 @@ export function Files({ level, id }: FilesProps) {
               </div>
               <p className="line-clamp-1">{file!.title}</p>
             </div>
-            <Trash2Icon
-              onClick={updateWorkspace}
-              className="hover:text-destructive"
-              size={18}
-            />
+            <div>
+              <ConfirmAlert
+                title="Are you absolutely sure"
+                content="This action cannot be undone. This will permanently delete this file"
+                cb={updateWorkspace}
+              >
+                <Trash2Icon className="hover:text-destructive" size={18} />
+              </ConfirmAlert>
+            </div>
           </div>
         </div>
       ) : (

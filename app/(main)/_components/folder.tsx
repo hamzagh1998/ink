@@ -13,6 +13,7 @@ import {
   FolderPlus,
   NotepadText,
   Trash,
+  Trash2Icon,
 } from "lucide-react";
 import { CldUploadWidget } from "next-cloudinary";
 
@@ -34,6 +35,7 @@ import { SkeletonLoader } from "@/components/skeleton-loader";
 import { Document } from "./document";
 import { useWorkspace } from "@/hooks/user-workspace";
 import { Files } from "./file";
+import { ConfirmAlert } from "@/components/confirm-alert";
 
 interface FolderProps {
   level: number;
@@ -119,7 +121,7 @@ export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
         }}
       >
         <div className="w-full flex justify-between items-center line-clamp-1">
-          <div className="flex justify-center items-center gap-2">
+          <div className="flex justify-end items-center gap-2">
             {isOpen ? (
               <ChevronDown
                 className="hover:text-secondary-foreground"
@@ -149,55 +151,61 @@ export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
               {title}
             </p>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <EllipsisVertical
-                className="hover:text-secondary-foreground"
-                size={18}
-              />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem
-                onClick={() => {
-                  setShowFolderModal(true);
-                  onOpen();
-                }}
-              >
-                <FolderPlus size={18} />
-                &ensp; Add Folder
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <CldUploadWidget
-                  uploadPreset={process.env.NEXT_PUBLIC_PRESET_NAME!}
-                  onSuccess={(results) => onUploadFile(results)}
+          <div className="flex justify-end items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <EllipsisVertical
+                  className="hover:text-secondary-foreground"
+                  size={18}
+                />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setShowFolderModal(true);
+                    onOpen();
+                  }}
                 >
-                  {({ open }) => (
-                    <div
-                      className="flex justify-start items-center w-full h-full cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent the event from bubbling up
-                        open();
-                      }}
-                    >
-                      <FileUp size={18} />
-                      &ensp; Add File
-                    </div>
-                  )}
-                </CldUploadWidget>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onCreateDocument}>
-                <NotepadText size={18} />
-                &ensp; Add Document
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={updateWorkspace}>
-                <Trash size={18} />
-                &ensp; Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  <FolderPlus size={18} />
+                  &ensp; Add Folder
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <CldUploadWidget
+                    uploadPreset={process.env.NEXT_PUBLIC_PRESET_NAME!}
+                    onSuccess={(results) => onUploadFile(results)}
+                  >
+                    {({ open }) => (
+                      <div
+                        className="flex justify-start items-center w-full h-full cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent the event from bubbling up
+                          open();
+                        }}
+                      >
+                        <FileUp size={18} />
+                        &ensp; Add File
+                      </div>
+                    )}
+                  </CldUploadWidget>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={onCreateDocument}>
+                  <NotepadText size={18} />
+                  &ensp; Add Document
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <ConfirmAlert
+              title="Are you absolutely sure"
+              content="This action cannot be undone. This will permanently delete this document"
+              cb={updateWorkspace}
+            >
+              <Trash2Icon className="hover:text-destructive" size={18} />
+            </ConfirmAlert>
+          </div>
         </div>
       </div>
       <div

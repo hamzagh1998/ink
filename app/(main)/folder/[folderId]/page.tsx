@@ -32,10 +32,13 @@ export default function FolderDetailPage() {
   const folder = useQuery(api.folders.getFolder, {
     id: folderId as Id<"folders">,
   });
+  const [fileId, setFileId] = useState<Id<"files"> | undefined>(undefined);
+
   const updateFolderName = useMutation(api.folders.updateFolderName);
   const createDocument = useMutation(api.documents.createDocument);
   const addFolderChild = useMutation(api.folders.addChild);
   const saveFile = useMutation(api.files.saveFile);
+  const file = useQuery(api.files.getFileById, { id: fileId });
 
   const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -122,9 +125,8 @@ export default function FolderDetailPage() {
     setFolderName(folder.title);
   }, [folder]);
 
-  const onSeeFileDetail = async (file: any) => {
+  const onSeeFileDetail = async () => {
     if (!file) return;
-
     const viwedFiles = [
       "png",
       "jpg",
@@ -144,9 +146,13 @@ export default function FolderDetailPage() {
       return window.open(file.url, "_blank");
     }
     router.push(
-      `/file/${file.id}?title=${encodeURIComponent(file.title)}&fileType=${encodeURIComponent(format)}&url=${encodeURIComponent(file.url)}`
+      `/file/${file._id}?title=${encodeURIComponent(file.title)}&fileType=${encodeURIComponent(format)}&url=${encodeURIComponent(file.url)}`
     );
   };
+
+  useEffect(() => {
+    onSeeFileDetail();
+  }, [file]);
 
   if (!folder) {
     return (
@@ -257,8 +263,8 @@ export default function FolderDetailPage() {
         {folder.children?.length ? (
           folder.children.map((child) => (
             <Card
-              className="relative w-[24%] h-64 mb-4 max-sm:w-[49%]"
               key={child.id}
+              className="relative w-[24%] h-64 mb-4 max-sm:w-[49%]"
             >
               <CardHeader className="h-[75%] flex items-center justify-center">
                 {child.type === "folder" ? (
@@ -272,11 +278,16 @@ export default function FolderDetailPage() {
               <CardContent className="flex w-full items-start justify-center">
                 <Link
                   href={
-                    (child.type === "folder"
-                      ? "/folder/"
+                    child.type === "folder"
+                      ? "/folder/" + child.id
                       : child.type === "document"
-                        ? "/document/"
-                        : "/file/") + child.id
+                        ? "/document/" + child.id
+                        : ""
+                  }
+                  onClick={() =>
+                    child.type === "file"
+                      ? setFileId(child.id as Id<"files">)
+                      : null
                   }
                 >
                   <p className="text-left text-xl max-sm:text-md font-bold text-secondary-foreground cursor-pointer hover:underline">

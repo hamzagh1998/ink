@@ -64,8 +64,10 @@ export const getSearch = query({
 });
 
 export const getFileById = query({
-  args: { id: v.id("files") },
+  args: { id: v.optional(v.id("files")) },
   handler: async (ctx, args) => {
+    if (!args.id) return null;
+
     const identity = await ctx.auth.getUserIdentity();
 
     if (!identity) {
