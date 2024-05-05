@@ -1,30 +1,22 @@
 "use client";
-import { useConvexAuth } from "convex/react";
 import { redirect } from "next/navigation";
 
 import { Navigation } from "./_components/navigation";
 
 import { SearchCommand } from "@/components/search-command";
-import { Spinner } from "@/components/spinner";
+import { useIsAuthenticated } from "@/hooks/use-is-authenticated";
 
 export default function MainLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { isAuthenticated, isLoading } = useConvexAuth();
-
-  if (isLoading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
+  const { isAuthenticated } = useIsAuthenticated();
 
   if (!isAuthenticated) {
     return redirect("/");
   }
+
   return (
     <div className="h-full flex">
       <Navigation />

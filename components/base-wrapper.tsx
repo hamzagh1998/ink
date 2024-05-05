@@ -6,11 +6,14 @@ import { useConvexAuth, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 import { useWorkspace } from "@/hooks/user-workspace";
+import { useIsAuthenticated } from "@/hooks/use-is-authenticated";
 
 export function BaseWrapper({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const { isAuthenticated } = useConvexAuth();
+
+  const { setIsAuthenticated } = useIsAuthenticated();
 
   const { setWorkspaceData } = useWorkspace();
 
@@ -34,6 +37,7 @@ export function BaseWrapper({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isAuthenticated) return;
+    setIsAuthenticated(true);
     initUserProfile();
   }, [isAuthenticated]);
 

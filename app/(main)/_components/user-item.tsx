@@ -11,8 +11,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronsLeftRight, LogOut } from "lucide-react";
 
+import { useIsAuthenticated } from "@/hooks/use-is-authenticated";
+
 export const UserItem = () => {
   const { user } = useUser();
+
+  const { setIsAuthenticated } = useIsAuthenticated();
 
   return (
     <DropdownMenu>
@@ -55,7 +59,7 @@ export const UserItem = () => {
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="w-full">
-          <SignOutButton>
+          <SignOutButton signOutCallback={() => setIsAuthenticated(false)}>
             <div className="flex justify-start items-center">
               <LogOut className="mr-2" size={16} />
               Sign out
