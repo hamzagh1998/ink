@@ -200,7 +200,7 @@ export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
 
             <ConfirmAlert
               title="Are you absolutely sure"
-              content="This action cannot be undone. This will permanently delete this document"
+              content="This action cannot be undone. This will permanently delete this folder"
               cb={updateWorkspace}
             >
               <Trash2Icon className="hover:text-destructive" size={18} />
