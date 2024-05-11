@@ -98,11 +98,11 @@ export const saveFile = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
-    // if (!identity) {
-    //   throw new Error("Not authenticated");
-    // }
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
 
-    const userId = identity?.subject;
+    const userId = identity.subject;
 
     const fileId = await ctx.db.insert("files", {
       title: args.title,
@@ -111,7 +111,7 @@ export const saveFile = mutation({
       format: args.format,
       parentFolder: args.parentFolder,
       parentWorkSpace: args.parentWorkSpace,
-      userId: userId as string,
+      userId,
       itemType: "file",
       isArchived: false,
       isPublished: false,
@@ -119,7 +119,7 @@ export const saveFile = mutation({
       createdAt: new Date().toUTCString(),
     });
 
-    return await checkAuthAndOwnership(ctx, userId as string, fileId);
+    return await checkAuthAndOwnership(ctx, userId, fileId);
   },
 });
 
