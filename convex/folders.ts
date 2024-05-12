@@ -206,6 +206,19 @@ export const addChild = mutation({
   },
 });
 
+export const addCollaborator = mutation({
+  args: { ids: v.array(v.id("users")) },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+  },
+});
+
 export const deleteFolder = mutation({
   args: { id: v.id("folders") },
   handler: async (ctx, args) => {
@@ -292,6 +305,11 @@ export const deleteFolder = mutation({
       const parent = folder.parentFolder
         ? folder.parentFolder
         : folder.parentWorkSpace;
+
+      if (folder.userId !== userId) {
+        throw new Error("Unauthorized");
+      }
+
       await removeFromParent(ctx, folder._id, parent, type); //* Remove it from parent children field!
       await ctx.db.delete(folder._id);
     };

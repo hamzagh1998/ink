@@ -142,6 +142,10 @@ export const deleteDocument = mutation({
 
     const document = await checkAuthAndOwnership(ctx, userId, args.id);
 
+    if (document.userId !== userId) {
+      throw new Error("Unauthorized");
+    }
+
     if (document) {
       const type = document.parentFolder ? "folder" : "workspace";
       const parent = document.parentFolder
@@ -219,9 +223,9 @@ export const update = mutation({
       throw new Error("Not found");
     }
 
-    if (document.userId !== userId) {
-      throw new Error("Unauthorized");
-    }
+    // if (document.userId !== userId) {
+    //   throw new Error("Unauthorized");
+    // }
 
     await ctx.db.patch(id, {
       ...rest,
@@ -284,9 +288,9 @@ export const removeCoverImage = mutation({
       throw new Error("Not found");
     }
 
-    if (document.userId !== userId) {
-      throw new Error("Unauthorized");
-    }
+    // if (document.userId !== userId) {
+    //   throw new Error("Unauthorized");
+    // }
 
     const updatedDocument = await ctx.db.patch(args.id, {
       coverImage: undefined,

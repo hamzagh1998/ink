@@ -170,6 +170,9 @@ export const deleteFile = mutation({
     };
 
     const file = await checkAuthAndOwnership(ctx, userId, args.id);
+    if (file.userId !== userId) {
+      throw new Error("Unauthorized");
+    }
 
     if (file) {
       const type = file.parentFolder ? "folder" : "workspace";

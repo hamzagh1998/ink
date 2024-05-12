@@ -12,6 +12,7 @@ import {
   FolderOpen,
   FolderPlus,
   NotepadText,
+  Share2,
   Trash,
   Trash2Icon,
 } from "lucide-react";
@@ -36,6 +37,8 @@ import { Document } from "./document";
 import { useWorkspace } from "@/hooks/user-workspace";
 import { Files } from "./file";
 import { ConfirmAlert } from "@/components/confirm-alert";
+import { useAddCollaborators } from "@/hooks/use-add-collaborators";
+import { CollaboratorDialog } from "./collaborator-dialog";
 
 interface FolderProps {
   level: number;
@@ -56,7 +59,10 @@ export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
   const deleteFolder = useMutation(api.folders.deleteFolder);
   const saveFile = useMutation(api.files.saveFile);
 
+  const collaborate = useAddCollaborators();
+
   const [showFolderModal, setShowFolderModal] = useState(false);
+  const [showCollaboratorModal, setShowCollaboratorModal] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
   const onCreateDocument = async () => {
@@ -195,6 +201,12 @@ export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
                   &ensp; Add Document
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setShowCollaboratorModal(true)}
+                >
+                  <Share2 size={18} />
+                  &ensp; Add Collaborators
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -258,6 +270,10 @@ export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
         parentFolder={id}
         show={showFolderModal}
         setShow={setShowFolderModal}
+      />
+      <CollaboratorDialog
+        show={showCollaboratorModal}
+        setShow={setShowCollaboratorModal}
       />
     </main>
   );

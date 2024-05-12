@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 import { Id } from "@/convex/_generated/dataModel";
 import { IconPicker } from "@/components/icon-picker";

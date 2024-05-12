@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { File } from "lucide-react";
+import { File, HelpCircle, NotepadText } from "lucide-react";
 import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 
@@ -66,8 +66,10 @@ export const SearchCommand = () => {
   }, [toggle]);
 
   const onSelect = (id: string, itemType: string) => {
+    console.log("HelpCircle");
+
     itemType === "document"
-      ? router.push(`/documents/${id}`)
+      ? router.push(`/document/${id}`)
       : router.push(`/file/${id}`);
     onClose();
   };
@@ -92,10 +94,14 @@ export const SearchCommand = () => {
               >
                 {item.icon ? (
                   <p className="mr-2 text-[18px]">{item.icon}</p>
-                ) : (
+                ) : item.itemType === "file" ? (
                   <File className="mr-2 h-4 w-4" />
+                ) : (
+                  <NotepadText className="mr-2 h-4 w-4" />
                 )}
-                <span>{item.title}</span>
+                <span onClick={() => onSelect(item._id, item.itemType)}>
+                  {item.title}
+                </span>
               </CommandItem>
             ))}
         </CommandGroup>

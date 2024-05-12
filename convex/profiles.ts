@@ -1,27 +1,6 @@
 import { v } from "convex/values";
-import { Context } from "vm";
 
 import { mutation, query } from "./_generated/server";
-import { Doc, Id } from "./_generated/dataModel";
-
-// Common function to check authentication and ownership
-async function checkAuthAndOwnership(
-  ctx: Context,
-  userId: string,
-  workspaceId: Id<"workspaces">
-) {
-  const document = await ctx.db.get(workspaceId);
-
-  if (!document) {
-    throw new Error("Not found");
-  }
-
-  if (document.userId !== userId) {
-    throw new Error("Unauthorized");
-  }
-
-  return document;
-}
 
 export const getProfile = query({
   args: { skip: v.optional(v.boolean()) },
@@ -78,5 +57,26 @@ export const checkOrCreateProfile = mutation({
     });
 
     return profile;
+  },
+});
+
+export const getUsersProfiles = mutation({
+  args: { name: v.string() },
+  async handler(ctx, args) {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const allProfiles = await ctx.db.query("profiles").collect();
+
+    const profiles = allProfiles.filter(
+      (profile) =>
+        profile.email !== identity.email &&
+        profile.name.toLocaleLowerCase().includes(args.name.toLocaleLowerCase())
+    );
+
+    return profiles;
   },
 });

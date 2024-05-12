@@ -7,7 +7,6 @@ import { Id } from "@/convex/_generated/dataModel";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useSearch } from "@/hooks/use-search";
 import { useFolder } from "@/hooks/use-folder";
-import { useSettings } from "@/hooks/use-settings";
 import { useWorkspace } from "@/hooks/user-workspace";
 
 import { SearchItem } from "./search";
@@ -22,6 +21,7 @@ import { SkeletonLoader } from "@/components/skeleton-loader";
 import { cn } from "@/lib/utils";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useAddCollaborators } from "@/hooks/use-add-collaborators";
 
 export function Navigation() {
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -30,11 +30,11 @@ export function Navigation() {
 
   const router = useRouter();
 
-  const settings = useSettings();
-  const params = useParams();
   const search = useSearch();
+  const collaborate = useAddCollaborators();
   const folder = useFolder();
   const pathname = usePathname();
+
   const { children } = useWorkspace();
 
   const isResizingRef = useRef(false);
@@ -44,12 +44,12 @@ export function Navigation() {
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
 
   useEffect(() => {
-    if (isMobile && (search.isOpen || folder.isOpen)) {
+    if (isMobile && (search.isOpen || folder.isOpen || collaborate.isOpen)) {
       collapse();
     } else {
       resetWidth();
     }
-  }, [isMobile, search, folder]);
+  }, [isMobile, search, folder, collaborate]);
 
   useEffect(() => {
     if (isMobile) {

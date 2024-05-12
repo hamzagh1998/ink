@@ -12,6 +12,7 @@ import {
 import { ChevronsLeftRight, LogOut } from "lucide-react";
 
 import { useIsAuthenticated } from "@/hooks/use-is-authenticated";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export const UserItem = () => {
   const { user } = useUser();
@@ -43,18 +44,21 @@ export const UserItem = () => {
         forceMount
       >
         <div className="flex flex-col space-y-4 p-2">
-          <div className="flex items-center gap-x-2">
-            <div className="rounded-md bg-secondary p-1">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user?.imageUrl} />
-              </Avatar>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-x-2">
+              <div className="rounded-md bg-secondary p-1">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.imageUrl} />
+                </Avatar>
+              </div>
+              <div className="space-y-1">
+                <p className="text-md line-clamp-1">{user?.fullName}</p>
+                <p className="text-xs font-medium leading-none text-muted-foreground">
+                  {user?.emailAddresses[0].emailAddress}
+                </p>
+              </div>
             </div>
-            <div className="space-y-1">
-              <p className="text-md line-clamp-1">{user?.fullName}</p>
-              <p className="text-xs font-medium leading-none text-muted-foreground">
-                {user?.emailAddresses[0].emailAddress}
-              </p>
-            </div>
+            <ModeToggle />
           </div>
         </div>
         <DropdownMenuSeparator />

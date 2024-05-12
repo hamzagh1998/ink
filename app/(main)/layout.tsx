@@ -5,6 +5,7 @@ import { Navigation } from "./_components/navigation";
 
 import { SearchCommand } from "@/components/search-command";
 import { useIsAuthenticated } from "@/hooks/use-is-authenticated";
+import { Navbar } from "./_components/navbar";
 
 export default function MainLayout({
   children,
