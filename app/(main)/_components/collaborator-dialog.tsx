@@ -1,9 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Id } from "@/convex/_generated/dataModel";
+import { useMutation } from "convex/react";
+import { Check } from "lucide-react";
 
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,10 +14,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import Image from "next/image";
-import { Check } from "lucide-react";
 
 export function CollaboratorDialog({
   show,
@@ -82,7 +81,7 @@ export function CollaboratorDialog({
         </DialogDescription>
         <Input
           value={search}
-          placeholder="Jon Doe"
+          placeholder="Jhon Doe"
           onChange={(e) => setSearch(e.target.value)}
         />
         {filtredUsers.length ? (
