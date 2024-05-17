@@ -240,19 +240,25 @@ export const addCollaborator = mutation({
 
       if (userWorkspace) {
         // Add the folderId to the user's workspace
-        if (userWorkspace.children)
-          await ctx.db.patch(userWorkspace._id, {
-            ...userWorkspace,
-            children: [
-              ...userWorkspace.children,
-              {
-                id: folder._id,
-                type: "folder",
-                title: folder?.title,
-                icon: folder?.icon,
-              },
-            ],
-          });
+        if (userWorkspace.children) {
+          const userWorkspaceChilden = [...userWorkspace.children];
+          if (
+            !userWorkspaceChilden.map((child) => child.id).includes(folder._id)
+          ) {
+            await ctx.db.patch(userWorkspace._id, {
+              ...userWorkspace,
+              children: [
+                ...userWorkspace.children,
+                {
+                  id: folder._id,
+                  type: "folder",
+                  title: folder?.title,
+                  icon: folder?.icon,
+                },
+              ],
+            });
+          }
+        }
       }
     }
   },
@@ -276,31 +282,30 @@ export const deleteFolder = mutation({
       type: "workspace" | "folder"
     ) => {
       if (type === "workspace") {
-        const workspace = await ctx.db
-          .query("workspaces")
-          .withIndex("by_user", (q: any) => q.eq("userId", userId))
-          .filter((q: any) => q.eq(q.field("_id"), parentId))
-          .first();
+        const workspaces = await ctx.db.query("workspaces").collect();
+        console.log(workspaces);
 
-        await ctx.db.patch(workspace._id, {
-          ...workspace,
-          children: workspace.children.filter(
-            (child: { id: Id<"folders"> }) => child.id !== folderId
-          ),
-        });
+        if (!workspaces) return;
+        for (const workspace of workspaces) {
+          await ctx.db.patch(workspace._id, {
+            ...workspace,
+            children: workspace.children.filter(
+              (child: { id: Id<"folders"> }) => child.id !== folderId
+            ),
+          });
+        }
       } else if (type === "folder") {
-        const folder = await ctx.db
-          .query("folders")
-          .withIndex("by_user", (q: any) => q.eq("userId", userId))
-          .filter((q: any) => q.eq(q.field("_id"), parentId))
-          .first();
+        const folders = await ctx.db.query("folders").collect();
 
-        await ctx.db.patch(folder._id, {
-          ...folder,
-          children: folder.children.filter(
-            (child: { id: Id<"folders"> }) => child.id !== folderId
-          ),
-        });
+        if (folders) return;
+        for (const folder of folders) {
+          await ctx.db.patch(folder._id, {
+            ...folder,
+            children: folder.children.filter(
+              (child: { id: Id<"folders"> }) => child.id !== folderId
+            ),
+          });
+        }
       }
     };
 

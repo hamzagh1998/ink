@@ -126,7 +126,7 @@ export function CollaboratorDialog({
           <div className="flex w-full justify-start items-center">
             {users.length ? (
               users
-                .filter((user: any) => selectedUsers.includes(user._id))
+                .filter((user: any) => selectedUsers.includes(user.userId))
                 .map((user: any) => (
                   <img
                     key={user._id}
