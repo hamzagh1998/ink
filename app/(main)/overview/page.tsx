@@ -82,9 +82,9 @@ export default function OverviewPage() {
       const workspace = await addWorkspaceChild({
         workspaceId: id!,
         child: {
-          id: document._id,
-          title: document.title,
-          icon: document.icon,
+          id: document!._id,
+          title: document!.title,
+          icon: document!.icon,
           type: "document",
         },
       });
@@ -94,7 +94,7 @@ export default function OverviewPage() {
         workspace.children,
         workspace.users
       );
-      router.push(`/document/${document._id}`);
+      router.push(`/document/${document!._id}`);
     });
 
     toast.promise(promise, {

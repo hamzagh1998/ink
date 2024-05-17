@@ -17,14 +17,14 @@ interface DocumentIdPageProps {
 export default function DocumentDetailPage({ params }: DocumentIdPageProps) {
   const update = useMutation(api.documents.update);
 
-  const Editor = useMemo(
-    () => dynamic(() => import("@/components/editor"), { ssr: false }),
-    []
-  );
-
   const document = useQuery(api.documents.getById, {
     documentId: params.documentId,
   });
+
+  const Editor = useMemo(
+    () => dynamic(() => import("@/components/editor"), { ssr: true }),
+    [document?.content]
+  );
 
   const onChange = (content: string) => {
     update({
@@ -32,6 +32,10 @@ export default function DocumentDetailPage({ params }: DocumentIdPageProps) {
       content,
     });
   };
+
+  if (document === null) {
+    return <div>Not found</div>;
+  }
 
   if (document === undefined) {
     return (
@@ -47,10 +51,6 @@ export default function DocumentDetailPage({ params }: DocumentIdPageProps) {
         </div>
       </div>
     );
-  }
-
-  if (document === null) {
-    return <div>Not found</div>;
   }
 
   return (

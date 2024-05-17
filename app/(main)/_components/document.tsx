@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
 import { NotepadText, Trash2Icon } from "lucide-react";
 
@@ -18,6 +18,8 @@ interface DocumentProps {
 export function Document({ level, id, title, icon }: DocumentProps) {
   const router = useRouter();
 
+  const profile = useQuery(api.profiles.getProfile, { skip: false });
+  const document = useQuery(api.documents.getById, { documentId: id });
   const deleteDocument = useMutation(api.documents.deleteDocument);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -54,7 +56,11 @@ export function Document({ level, id, title, icon }: DocumentProps) {
               content="This action cannot be undone. This will permanently delete this document"
               cb={updateWorkspace}
             >
-              <Trash2Icon className="hover:text-destructive" size={18} />
+              {document?.userId === profile?.userId ? (
+                <Trash2Icon className="hover:text-destructive" size={18} />
+              ) : (
+                <></>
+              )}
             </ConfirmAlert>
           </div>
         </div>

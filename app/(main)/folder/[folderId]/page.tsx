@@ -32,6 +32,7 @@ export default function FolderDetailPage() {
   const folder = useQuery(api.folders.getFolder, {
     id: folderId as Id<"folders">,
   });
+
   const [fileId, setFileId] = useState<Id<"files"> | undefined>(undefined);
 
   const updateFolderName = useMutation(api.folders.updateFolderName);
@@ -67,13 +68,13 @@ export default function FolderDetailPage() {
       await addFolderChild({
         folderId: folderId as Id<"folders">,
         child: {
-          id: document._id,
-          title: document.title,
-          icon: document.icon,
+          id: document!._id,
+          title: document!.title,
+          icon: document!.icon,
           type: "document",
         },
       });
-      router.push(`/document/${document._id}`);
+      router.push(`/document/${document!._id}`);
     });
   };
 

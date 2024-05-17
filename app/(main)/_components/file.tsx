@@ -18,6 +18,7 @@ interface FilesProps {
 export function Files({ level, id }: FilesProps) {
   const router = useRouter();
 
+  const profile = useQuery(api.profiles.getProfile, { skip: false });
   const file = useQuery(api.files.getFileById, { id });
   const deleteFile = useMutation(api.files.deleteFile);
 
@@ -85,7 +86,11 @@ export function Files({ level, id }: FilesProps) {
                 content="This action cannot be undone. This will permanently delete this file"
                 cb={updateWorkspace}
               >
-                <Trash2Icon className="hover:text-destructive" size={18} />
+                {profile?.userId === file.userId ? (
+                  <Trash2Icon className="hover:text-destructive" size={18} />
+                ) : (
+                  <></>
+                )}
               </ConfirmAlert>
             </div>
           </div>

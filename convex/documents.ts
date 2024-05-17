@@ -35,7 +35,7 @@ export const getDocuments = query({
 
     const documents = await ctx.db
       .query("documents")
-      .withIndex("by_user_parent", (q) => q.eq("userId", userId))
+      // .withIndex("by_user_parent", (q) => q.eq("userId", userId))
       .collect();
 
     return documents;
@@ -53,7 +53,7 @@ export const archive = mutation({
 
     const userId = identity.subject;
 
-    const document = await checkAuthAndOwnership(ctx, userId, args.id);
+    const document = await ctx.db.get(args.id);
 
     const updatedDocument = await ctx.db.patch(args.id, {
       isArchived: true,
@@ -90,7 +90,7 @@ export const createDocument = mutation({
       createdAt: new Date().toUTCString(),
     });
 
-    return checkAuthAndOwnership(ctx, userId, documentId);
+    return await ctx.db.get(documentId);
   },
 });
 
@@ -140,7 +140,9 @@ export const deleteDocument = mutation({
       }
     };
 
-    const document = await checkAuthAndOwnership(ctx, userId, args.id);
+    const document = await ctx.db.get(args.id);
+
+    if (!document) return;
 
     if (document.userId !== userId) {
       throw new Error("Unauthorized");
@@ -151,7 +153,12 @@ export const deleteDocument = mutation({
       const parent = document.parentFolder
         ? document.parentFolder
         : document.parentWorkSpace;
-      await removeFromParent(ctx, document._id, parent, type);
+      await removeFromParent(
+        ctx,
+        document._id,
+        parent as Id<"workspaces" | "folders">,
+        type
+      );
       await ctx.db.delete(document._id);
     }
   },
@@ -189,7 +196,7 @@ export const getById = query({
 
     const userId = identity.subject;
 
-    const document = await checkAuthAndOwnership(ctx, userId, args.documentId);
+    const document = await ctx.db.get(args.documentId);
 
     return document;
   },
@@ -267,7 +274,7 @@ export const update = mutation({
         children: updatedChildren,
       });
     }
-    return await checkAuthAndOwnership(ctx, userId, args.id);
+    return await ctx.db.get(args.id);
   },
 });
 

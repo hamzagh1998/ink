@@ -34,10 +34,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { SkeletonLoader } from "@/components/skeleton-loader";
 import { Document } from "./document";
-import { useWorkspace } from "@/hooks/user-workspace";
 import { Files } from "./file";
 import { ConfirmAlert } from "@/components/confirm-alert";
-import { useAddCollaborators } from "@/hooks/use-add-collaborators";
 import { CollaboratorDialog } from "./collaborator-dialog";
 
 interface FolderProps {
@@ -51,6 +49,8 @@ interface FolderProps {
 export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
   const router = useRouter();
 
+  const profile = useQuery(api.profiles.getProfile, { skip: false });
+  const folder = useQuery(api.folders.getFolder, { id });
   const folderChildren = useQuery(api.folders.getFolderChildren, {
     folderId: id,
   });
@@ -58,8 +58,6 @@ export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
   const addFolderChild = useMutation(api.folders.addChild);
   const deleteFolder = useMutation(api.folders.deleteFolder);
   const saveFile = useMutation(api.files.saveFile);
-
-  const collaborate = useAddCollaborators();
 
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [showCollaboratorModal, setShowCollaboratorModal] = useState(false);
@@ -73,13 +71,13 @@ export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
       await addFolderChild({
         folderId: id!,
         child: {
-          id: document._id,
-          title: document.title,
-          icon: document.icon,
+          id: document!._id,
+          title: document!.title,
+          icon: document!.icon,
           type: "document",
         },
       });
-      router.push(`/document/${document._id}`);
+      router.push(`/document/${document!._id}`);
     });
 
     toast.promise(promise, {
@@ -215,7 +213,11 @@ export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
               content="This action cannot be undone. This will permanently delete this folder"
               cb={updateWorkspace}
             >
-              <Trash2Icon className="hover:text-destructive" size={18} />
+              {profile?.userId === folder?.userId ? (
+                <Trash2Icon className="hover:text-destructive" size={18} />
+              ) : (
+                <></>
+              )}
             </ConfirmAlert>
           </div>
         </div>
@@ -272,6 +274,7 @@ export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
         setShow={setShowFolderModal}
       />
       <CollaboratorDialog
+        folderId={id}
         show={showCollaboratorModal}
         setShow={setShowCollaboratorModal}
       />

@@ -35,7 +35,7 @@ export const getFolders = query({
 
     const folders = await ctx.db
       .query("folders")
-      .withIndex("by_user_parent", (q) => q.eq("userId", userId))
+      // .withIndex("by_user_parent", (q) => q.eq("userId", userId))
       .collect();
 
     return folders;
@@ -55,7 +55,7 @@ export const getFolder = query({
 
     const folders = await ctx.db
       .query("folders")
-      .withIndex("by_user_parent", (q) => q.eq("userId", userId))
+      // .withIndex("by_user_parent", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("_id"), args.id))
       .first();
 
@@ -76,7 +76,7 @@ export const getFolderChildren = query({
 
     const folder = await ctx.db
       .query("folders")
-      .withIndex("by_user_parent", (q) => q.eq("userId", userId))
+      // .withIndex("by_user_parent", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("_id"), args.folderId))
       .first();
 
@@ -118,7 +118,7 @@ export const createFolder = mutation({
       createdAt: new Date().toUTCString(),
     });
 
-    return await checkAuthAndOwnership(ctx, userId, folderId);
+    return await ctx.db.get(folderId);
   },
 });
 export const updateFolderName = mutation({
@@ -136,7 +136,9 @@ export const updateFolderName = mutation({
 
     const userId = identity.subject;
 
-    const folder = await checkAuthAndOwnership(ctx, userId, args.folderId);
+    const folder = await ctx.db.get(args.folderId);
+
+    if (!folder) return;
 
     await ctx.db.patch(args.folderId, {
       ...folder,
@@ -172,7 +174,7 @@ export const updateFolderName = mutation({
       });
     }
 
-    return await checkAuthAndOwnership(ctx, userId, args.folderId);
+    return await ctx.db.get(args.folderId);
   },
 });
 
@@ -195,19 +197,24 @@ export const addChild = mutation({
 
     const userId = identity.subject;
 
-    const folder = await checkAuthAndOwnership(ctx, userId, args.folderId);
+    const folder = await ctx.db.get(args.folderId);
 
-    await ctx.db.patch(args.folderId, {
-      ...folder,
-      children: [...folder.children, args.child],
-    });
+    if (folder) {
+      // Ensure children is an array
+      folder.children = folder.children || [];
 
-    return await checkAuthAndOwnership(ctx, userId, args.folderId);
+      await ctx.db.patch(args.folderId, {
+        ...folder,
+        children: [...folder.children, args.child],
+      });
+    }
+
+    return await ctx.db.get(args.folderId);
   },
 });
 
 export const addCollaborator = mutation({
-  args: { ids: v.array(v.id("users")) },
+  args: { ids: v.array(v.string()), folderId: v.id("folders") },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
@@ -216,6 +223,38 @@ export const addCollaborator = mutation({
     }
 
     const userId = identity.subject;
+
+    const folder = await ctx.db
+      .query("folders")
+      // .withIndex("by_user_parent", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("_id"), args.folderId))
+      .first();
+
+    if (!folder) return;
+    // Get the workspace of each user
+    for (const id of args.ids) {
+      const userWorkspace = await ctx.db
+        .query("workspaces")
+        .filter((q: any) => q.eq(q.field("userId"), id))
+        .first();
+
+      if (userWorkspace) {
+        // Add the folderId to the user's workspace
+        if (userWorkspace.children)
+          await ctx.db.patch(userWorkspace._id, {
+            ...userWorkspace,
+            children: [
+              ...userWorkspace.children,
+              {
+                id: folder._id,
+                type: "folder",
+                title: folder?.title,
+                icon: folder?.icon,
+              },
+            ],
+          });
+      }
+    }
   },
 });
 
@@ -266,12 +305,14 @@ export const deleteFolder = mutation({
     };
 
     const onDeleteFolderChildren = async (folderId: Id<"folders">) => {
-      const folder = await checkAuthAndOwnership(ctx, userId, folderId);
+      const folder = await ctx.db.get(folderId);
+      if (!folder) return;
+      folder.children = folder?.children || [];
       //* Delete folder
       if (folder.children.length) {
         for (const child of folder.children) {
           if (child.type === "folder") {
-            await onDeleteFolderChildren(child.id);
+            await onDeleteFolderChildren(child.id as Id<"folders">);
           } else if (child.type === "document") {
             const document = await ctx.db
               .query("documents")
@@ -310,7 +351,12 @@ export const deleteFolder = mutation({
         throw new Error("Unauthorized");
       }
 
-      await removeFromParent(ctx, folder._id, parent, type); //* Remove it from parent children field!
+      await removeFromParent(
+        ctx,
+        folder._id,
+        parent as Id<"folders" | "workspaces">,
+        type
+      ); //* Remove it from parent children field!
       await ctx.db.delete(folder._id);
     };
 

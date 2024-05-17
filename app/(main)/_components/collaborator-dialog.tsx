@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Id } from "@/convex/_generated/dataModel";
 import { useMutation } from "convex/react";
-import { Check } from "lucide-react";
+import { Check, Loader } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,36 +17,37 @@ import {
 import { api } from "@/convex/_generated/api";
 
 export function CollaboratorDialog({
+  folderId,
   show,
   setShow,
 }: {
+  folderId: Id<"folders">;
   show: boolean;
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const getUsersProfiles = useMutation(api.profiles.getUsersProfiles);
+  const addCollaborator = useMutation(api.folders.addCollaborator);
 
   const [search, setSearch] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState<Id<"profiles">[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [users, setUsers] = useState<any>([]);
   const [filtredUsers, setFiltredUsers] = useState<any>([]);
 
-  const handleSubmit = () => {
-    return;
-  };
+  const [isLoading, setIsLoading] = useState(false);
 
   const onGetUsers = async () => {
     const users = await getUsersProfiles({ name: search });
     setUsers(users);
   };
 
-  const toggleUsers = async (userId: Id<"profiles">) => {
+  const toggleUsers = async (userId: string) => {
     const isUserExists = selectedUsers.filter(
-      (selectedUserId: Id<"profiles">) => userId === selectedUserId
+      (selectedUserId: string) => userId === selectedUserId
     )[0];
     isUserExists
       ? setSelectedUsers([
           ...selectedUsers.filter(
-            (selectedUserId: Id<"profiles">) => selectedUserId !== userId
+            (selectedUserId: string) => selectedUserId !== userId
           ),
         ])
       : selectedUsers.length < 5
@@ -55,8 +56,10 @@ export function CollaboratorDialog({
   };
 
   const onAdd = async () => {
-    try {
-    } catch (error) {}
+    setIsLoading(true);
+    await addCollaborator({ ids: selectedUsers, folderId });
+    setIsLoading(false);
+    setShow(false);
   };
 
   useEffect(() => {
@@ -89,7 +92,7 @@ export function CollaboratorDialog({
             <div
               key={user._id}
               className="flex w-full justify-between items-center cursor-pointer p-1 hover:bg-primary-foreground"
-              onClick={() => toggleUsers(user._id)}
+              onClick={() => toggleUsers(user.userId)}
             >
               <div className="w-full flex justify-start items-center gap-2">
                 <img
@@ -109,7 +112,11 @@ export function CollaboratorDialog({
                   </p>
                 </div>
               </div>
-              {selectedUsers.includes(user._id) ? <Check size={18} /> : <></>}
+              {selectedUsers.includes(user.userId) ? (
+                <Check size={18} />
+              ) : (
+                <></>
+              )}
             </div>
           ))
         ) : (
@@ -140,9 +147,15 @@ export function CollaboratorDialog({
           <Button
             type="button"
             disabled={selectedUsers.length === 0}
-            onClick={handleSubmit}
+            onClick={onAdd}
           >
-            Add
+            {isLoading ? (
+              <div className="rotate-2">
+                <Loader size={18} />
+              </div>
+            ) : (
+              "Add"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
