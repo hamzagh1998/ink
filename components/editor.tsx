@@ -16,7 +16,7 @@ interface EditorProps {
   initialContent?: string;
 }
 
-const doc = new Y.Doc();
+// const doc = new Y.Doc();
 
 export default function Editor({ onChange, initialContent }: EditorProps) {
   const { resolvedTheme } = useTheme();
@@ -27,7 +27,7 @@ export default function Editor({ onChange, initialContent }: EditorProps) {
     return results.info.original_filename;
   };
 
-  const provider = new WebrtcProvider("my-document-id", doc); // setup a yjs provider (explained below)
+  // const provider = new WebrtcProvider("my-document-id", doc); // setup a yjs provider (explained below)
 
   const editor: BlockNoteEditor = useCreateBlockNote({
     initialContent: initialContent

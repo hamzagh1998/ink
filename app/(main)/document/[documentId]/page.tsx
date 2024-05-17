@@ -23,7 +23,7 @@ export default function DocumentDetailPage({ params }: DocumentIdPageProps) {
 
   const Editor = useMemo(
     () => dynamic(() => import("@/components/editor"), { ssr: true }),
-    [document?.content]
+    []
   );
 
   const onChange = (content: string) => {
