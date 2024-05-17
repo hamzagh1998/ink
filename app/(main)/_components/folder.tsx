@@ -37,6 +37,7 @@ import { Document } from "./document";
 import { Files } from "./file";
 import { ConfirmAlert } from "@/components/confirm-alert";
 import { CollaboratorDialog } from "./collaborator-dialog";
+import { useAddCollaborators } from "@/hooks/use-add-collaborators";
 
 interface FolderProps {
   level: number;
@@ -58,6 +59,8 @@ export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
   const addFolderChild = useMutation(api.folders.addChild);
   const deleteFolder = useMutation(api.folders.deleteFolder);
   const saveFile = useMutation(api.files.saveFile);
+
+  const { onOpen: onOpenCollaborator } = useAddCollaborators();
 
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [showCollaboratorModal, setShowCollaboratorModal] = useState(false);
@@ -200,7 +203,10 @@ export function Folder({ level, id, title, icon, onOpen }: FolderProps) {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => setShowCollaboratorModal(true)}
+                  onClick={() => {
+                    setShowCollaboratorModal(true);
+                    onOpenCollaborator();
+                  }}
                 >
                   <Share2 size={18} />
                   &ensp; Add Collaborators

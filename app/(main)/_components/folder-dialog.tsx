@@ -116,9 +116,9 @@ export function FolderDialog({
         await addFolderChild({
           folderId: parentFolder,
           child: {
-            id: folder._id,
-            title: folder.title,
-            icon: folder.icon,
+            id: folder!._id,
+            title: folder!.title,
+            icon: folder!.icon,
             type: "folder",
           },
         });
@@ -127,9 +127,9 @@ export function FolderDialog({
         const workspace = await addWorkspaceChild({
           workspaceId: id!,
           child: {
-            id: folder._id,
-            title: folder.title,
-            icon: folder.icon,
+            id: folder!._id,
+            title: folder!.title,
+            icon: folder!.icon,
             type: "folder",
           },
         });
