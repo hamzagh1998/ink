@@ -283,7 +283,6 @@ export const deleteFolder = mutation({
     ) => {
       if (type === "workspace") {
         const workspaces = await ctx.db.query("workspaces").collect();
-        console.log(workspaces);
 
         if (!workspaces) return;
         for (const workspace of workspaces) {

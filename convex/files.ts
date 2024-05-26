@@ -74,11 +74,10 @@ export const getFileById = query({
       throw new Error("Not authenticated");
     }
 
-    const userId = identity.subject;
+    // const userId = identity.subject;
 
     const file = await ctx.db
       .query("files")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("_id"), args.id))
       .first();
 
